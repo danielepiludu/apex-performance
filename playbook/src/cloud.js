@@ -48,7 +48,7 @@ async function googleLogin(btn, msg) {
 }
 function loginScreen() {
   $('#app').innerHTML = `<div class="login"><div class="lcard">
-    <div class="logo big"><i>${ic('bolt')}</i><span>Playbook</span></div>
+    <div class="logo big"><img class="lmark" src="${LOGO}" alt=""><span>${APP_NAME}</span></div>
     <p class="muted">Programmi di allenamento. Accedi per avere gli stessi dati su PC, tablet e telefono.</p>
     <button class="btn gbtn" id="lg-go"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Accedi con Google</button>
     <p class="lerr" id="lg-msg" role="alert"></p>
@@ -82,7 +82,7 @@ function settingsView(el) {
     </section>
     <section class="sbox"><h3>App sul telefono e sul PC</h3>
       ${isStandalone() ? '<p class="rs">Stai usando l\'app installata. Funziona anche senza rete.</p>'
-        : Cloud.installEvt ? '<p class="rs">Installa Playbook: avrai l\'icona sulla schermata Home e si aprirà anche senza rete.</p><button class="btn pri" data-s="install">Installa l\'app</button>'
+        : Cloud.installEvt ? '<p class="rs">Installa ' + APP_NAME + ': avrai l\'icona sulla schermata Home e si aprirà anche senza rete.</p><button class="btn pri" data-s="install">Installa l\'app</button>'
         : isIOS() ? '<p class="rs">Su iPhone e iPad: apri questa pagina con Safari, tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>Aggiungi alla schermata Home</b>.</p>'
         : '<p class="rs">Dal menu del browser scegli <b>Installa app</b> o <b>Aggiungi a schermata Home</b>.</p>'}
     </section>
@@ -113,14 +113,14 @@ function exportBackup() {
   const data = { app: 'playbook', version: 1, exportedAt: new Date().toISOString(), cols: {} };
   BACKUP_COLS.forEach(c => { data.cols[c] = Store.cols[c] || {}; });
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `playbook-backup-${todayISO()}.json`;
+  a.href = URL.createObjectURL(blob); a.download = `dp-performance-backup-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   toast('Backup salvato');
 }
 async function importBackup(inp) {
   const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
   let data; try { data = JSON.parse(await f.text()); } catch (e) { toast('File non valido'); return; }
-  if (!data || data.app !== 'playbook' || !data.cols) { toast('Questo file non è un backup di Playbook'); return; }
+  if (!data || data.app !== 'playbook' || !data.cols) { toast('Questo file non è un backup di ' + APP_NAME); return; }
   const n = BACKUP_COLS.reduce((s, c) => s + Object.keys(data.cols[c] || {}).length, 0);
   modal('Importa backup', `<p>Il file contiene ${n} elementi (squadre, atleti, programmi) del ${esc(fmtDate((data.exportedAt || '').slice(0, 10)))}.</p><p class="rs">Gli elementi con lo stesso identificativo vengono sostituiti; gli altri dati restano.</p>`,
     '<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="imp-ok">Importa</button>', (el, m) => {

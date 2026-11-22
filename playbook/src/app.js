@@ -113,7 +113,7 @@ function shell() {
   $('#app').innerHTML = `
   ${S.open ? '<div class="scrim" data-a="menu"></div>' : ''}
   <aside class="side ${S.min ? 'min' : ''} ${S.open ? 'open' : ''}">
-    <div class="logo"><i>${ic('bolt')}</i><span>Playbook</span></div>
+    <div class="logo"><img class="lmark" src="${LOGO}" alt=""><span>${APP_NAME}</span></div>
     ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
     <div class="sfoot"><button class="nv" data-v="settings" ${S.view === 'settings' ? 'aria-current="page"' : ''}>${ic('gear')}<span>Impostazioni</span></button><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>

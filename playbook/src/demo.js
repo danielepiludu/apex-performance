@@ -121,7 +121,7 @@ async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
   let key = 'local';
   if (cloudInit() && !localOnly()) {
-    $('#app').innerHTML = '<div class="login"><div class="logo big"><i>' + ic('bolt') + '</i><span>Playbook</span></div></div>';
+    $('#app').innerHTML = '<div class="login"><div class="logo big"><img class="lmark" src="' + LOGO + '" alt=""><span>' + APP_NAME + '</span></div></div>';
     await cloudRedirectResult();
     const u = await cloudFirstUser(6000);
     if (!u) { loginScreen(); return; }

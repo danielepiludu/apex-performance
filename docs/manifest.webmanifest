@@ -1,6 +1,6 @@
 {
-  "name": "Playbook",
-  "short_name": "Playbook",
+  "name": "DP Performance",
+  "short_name": "DP Performance",
   "description": "Programmi di allenamento per preparatori atletici",
   "lang": "it",
   "start_url": "./",

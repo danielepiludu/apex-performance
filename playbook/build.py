@@ -9,6 +9,8 @@ rd = lambda p: open(p, encoding='utf-8').read()
 t = rd(os.path.join(src, 'shell.html'))
 t = t.replace('/*__CSS__*/', rd(os.path.join(src, 'style.css')))
 t = t.replace('/*__JS__*/', '\n'.join(rd(os.path.join(src, f)) for f in JS))
+import base64
+t = t.replace('__LOGO_DATA__', 'data:image/png;base64,' + base64.b64encode(open(os.path.join(here, 'icons', 'logo-mark.png'), 'rb').read()).decode())
 os.makedirs(os.path.join(out, 'icons'), exist_ok=True)
 open(os.path.join(out, 'index.html'), 'w', encoding='utf-8').write(t)
 for f in ['config.js', 'manifest.webmanifest']:
