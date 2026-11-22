@@ -39,6 +39,7 @@ function weRender() {
     <select class="inp sel" data-e="day" aria-label="Giorno">${[1, 2, 3, 4, 5, 6, 7].map(d => `<option value="${d}" ${d === wo.day ? 'selected' : ''}>Giorno ${d}${taken.has(d) ? ' (scambia)' : ''}</option>`).join('')}</select>
     <span class="muted">${esc(ph.name)} · ${W === 1 ? 'sett. ' + (s + 1) : `sett. ${s + 1}–${s + W}`}</span>
     <div class="grow"></div>
+    <button class="btn sm ico" data-e="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-e="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
     <button class="btn sm" data-e="rpe" aria-pressed="${WE.rpe}">RPE</button>
     <button class="btn sm" data-e="paste">Scrivi più righe</button>
     <button class="btn sm ico" data-e="womenu" aria-label="Azioni allenamento">${ic('more')}</button></div>`;
@@ -77,7 +78,7 @@ function weRender() {
     h += '</tbody></table></div>';
   }
   h += `<div class="wefoot"><button class="btn" data-e="addblk">＋ Blocco ${LETTERS[wo.blocks.length % 26]}</button><span class="muted small">Più esercizi nello stesso blocco = superset (2), triset (3), circuito (4+).</span></div>`;
-  box.innerHTML = h;
+  box.innerHTML = h; undoBtns();
 }
 function blockHead(wo, b, bi) {
   return `<div class="bhin" style="--bc:${bColor(bi)}"><b>${blockName(b, bi)}</b>${b.rows.length > 1 ? `<label class="brest">Rec. tra i giri <input data-b="${b.id}" data-bf="rest" value="${esc(b.rest || '')}" placeholder="es. 2'" autocomplete="off"></label>` : ''}<span class="grow"></span>
@@ -96,7 +97,7 @@ function refreshRow(r, W) {
 }
 function weWire(el) {
   const box = $('#wed', el);
-  const redraw = (focusSel) => { changed(); const sc = $('.tscroll', box), sl = sc ? sc.scrollLeft : 0, mt = el.querySelector('.modal').scrollTop; weRender(); const sc2 = $('.tscroll', box); if (sc2) sc2.scrollLeft = sl; el.querySelector('.modal').scrollTop = mt; if (focusSel) { const f = $(focusSel, box); if (f) f.focus(); } };
+  const redraw = (focusSel) => { changed(true); const sc = $('.tscroll', box), sl = sc ? sc.scrollLeft : 0, mt = el.querySelector('.modal').scrollTop; weRender(); const sc2 = $('.tscroll', box); if (sc2) sc2.scrollLeft = sl; el.querySelector('.modal').scrollTop = mt; if (focusSel) { const f = $(focusSel, box); if (f) f.focus(); } };
   box.oninput = e => {
     const t = e.target, { wo, W } = weCur(); if (!wo) return;
     if (t.dataset.e === 'title') { wo.title = t.value; return changed(); }
@@ -143,6 +144,8 @@ function weWire(el) {
     const b = e.target.closest('[data-e]'); if (!b) return;
     const x = b.dataset.e, { ph, wo, W } = weCur(); if (!wo) return;
     const bi = b.dataset.b ? wo.blocks.findIndex(q => q.id === b.dataset.b) : -1;
+    if (x === 'undo') return undoRedo(-1);
+    if (x === 'redo') return undoRedo(1);
     if (x === 'wk') { WE.i = +b.dataset.k; weRender(); }
     else if (x === 'rpe') { WE.rpe = !WE.rpe; try { localStorage.setItem('pb_rpe', WE.rpe ? '1' : '0'); } catch (e2) { } weRender(); }
     else if (x === 'addblk') { const nb = newBlock(); wo.blocks.push(nb); redraw(`[data-ghost="${nb.id}"]`); }
@@ -156,11 +159,11 @@ function weWire(el) {
     else if (x === 'womenu') {
       const free = [1, 2, 3, 4, 5, 6, 7].filter(d => !ph.workouts.some(w => w.day === d));
       popMenu(b, [
-        ...free.map(d => ({ label: 'Duplica nel giorno ' + d, fn: () => { copyWorkout(ph, wo.id, d); changed(); toast('Duplicato nel giorno ' + d); } })),
+        ...free.map(d => ({ label: 'Duplica nel giorno ' + d, fn: () => { copyWorkout(ph, wo.id, d); changed(true); toast('Duplicato nel giorno ' + d); } })),
         S.P.phases.length > 1 && { sep: true },
-        ...S.P.phases.filter(p => p !== ph).map(p => ({ label: 'Copia in ' + p.name + (p.workouts.some(w => w.day === wo.day) ? ' (giorno occupato)' : ''), disabled: p.workouts.some(w => w.day === wo.day), fn: () => { copyWorkout(ph, wo.id, wo.day, p); changed(); toast('Copiato in ' + p.name); } })),
+        ...S.P.phases.filter(p => p !== ph).map(p => ({ label: 'Copia in ' + p.name + (p.workouts.some(w => w.day === wo.day) ? ' (giorno occupato)' : ''), disabled: p.workouts.some(w => w.day === wo.day), fn: () => { copyWorkout(ph, wo.id, wo.day, p); changed(true); toast('Copiato in ' + p.name); } })),
         { sep: true },
-        { label: 'Elimina allenamento (tutta la fase)', danger: true, confirm: 'Confermi l\'eliminazione?', fn: () => { ph.workouts.splice(ph.workouts.indexOf(wo), 1); changed(); const c = el.querySelector('[data-close]'); c && c.click(); toast('Allenamento eliminato'); } }
+        { label: 'Elimina allenamento (tutta la fase)', danger: true, confirm: 'Confermi l\'eliminazione?', fn: () => { ph.workouts.splice(ph.workouts.indexOf(wo), 1); changed(true); const c = el.querySelector('[data-close]'); c && c.click(); toast('Allenamento eliminato'); } }
       ]);
     }
     else if (x === 'rmenu') {
@@ -226,7 +229,7 @@ function pasteDialog() {
           if (b.rows.length) wo.blocks.push(b);
         }
         if (!wo.blocks.length) wo.blocks.push(newBlock());
-        m.el.remove(); changed(); weRender(); toast(n ? `${n} esercizi aggiunti` : 'Nessun esercizio riconosciuto');
+        m.el.remove(); changed(true); weRender(); toast(n ? `${n} esercizi aggiunti` : 'Nessun esercizio riconosciuto');
       };
     }, { onClose: () => { } });
 }

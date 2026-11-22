@@ -2,7 +2,7 @@
 import os
 here = os.path.dirname(os.path.abspath(__file__))
 src = os.path.join(here, 'src')
-JS = ['util.js', 'progress.js', 'quick.js', 'program.js', 'app.js', 'programs.js', 'workout.js', 'demo.js']
+JS = ['util.js', 'progress.js', 'quick.js', 'program.js', 'app.js', 'programs.js', 'workout.js', 'print.js', 'demo.js']
 t = open(os.path.join(src, 'shell.html'), encoding='utf-8').read()
 t = t.replace('/*__CSS__*/', open(os.path.join(src, 'style.css'), encoding='utf-8').read())
 t = t.replace('/*__JS__*/', '\n'.join(open(os.path.join(src, f), encoding='utf-8').read() for f in JS))

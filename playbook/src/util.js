@@ -25,3 +25,7 @@ function toast(m) { $$('.toast').forEach(x => x.remove()); const t = document.cr
 function age(d) { if (!d) return ''; const b = new Date(d); if (isNaN(b)) return ''; const n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a + ' anni'; }
 function initials(n) { return (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase(); }
 const stripId = o => { const c = { ...o }; delete c.id; return c; };
+const todayISO = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 10); };
+function addDays(iso, n) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
+function fmtDate(iso, short) { if (!iso) return ''; const [y, m, d] = iso.split('-'); return short ? `${d}/${m}` : `${d}/${m}/${y}`; }
+function nextMonday() { const t = todayISO(), d = new Date(t + 'T12:00:00').getDay(); return addDays(t, ((8 - d) % 7) || 7); }

@@ -99,7 +99,7 @@ function shell() {
   ${S.open ? '<div class="scrim" data-a="menu"></div>' : ''}
   <aside class="side ${S.min ? 'min' : ''} ${S.open ? 'open' : ''}">
     <div class="logo"><i>${ic('bolt')}</i><span>Playbook</span></div>
-    ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && S.view === 'editor') ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
+    ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
     <div class="sfoot"><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
   </aside>
@@ -111,7 +111,7 @@ function shell() {
       <div class="grow"></div>
       <span class="stat" id="mode"></span>
     </header>
-    <main class="content${S.view === 'editor' ? ' wide' : ''}"><div class="page" id="page"></div></main>
+    <main class="content${S.view === 'editor' || S.view === 'print' ? ' wide' : ''}"><div class="page" id="page"></div></main>
   </div>`;
   showStat(); page();
 }
@@ -126,6 +126,7 @@ function page() {
   if (S.view === 'athletes') return athletesView(el);
   if (S.view === 'programs') return programsView(el);
   if (S.view === 'editor') return editorView(el);
+  if (S.view === 'print') return printView(el);
     const n = NAV.find(x => x[0] === S.view) || [];
   el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
 }
@@ -148,6 +149,7 @@ function athleteForm(id) {
   const a = id ? clone(S.athletes.find(x => x.id === id)) : { name: '', birth: '', role: '', injuries: '', contact: '', teamIds: S.team !== 'all' ? [S.team] : [] };
   const sel = new Set(a.teamIds || []);
   const m = modal(id ? 'Modifica atleta' : 'Nuovo atleta', `
+    ${id ? athProgramsHTML(id) : ''}
     <div class="fld"><label for="f-n">Nome e cognome</label><input id="f-n" class="inp" value="${esc(a.name)}" autocomplete="off"></div>
     <div class="two"><div class="fld"><label for="f-b">Data di nascita</label><input id="f-b" type="date" class="inp" value="${esc(a.birth)}"></div>
     <div class="fld"><label for="f-r">Ruolo / sport</label><input id="f-r" class="inp" value="${esc(a.role)}" autocomplete="off"></div></div>
@@ -157,6 +159,7 @@ function athleteForm(id) {
     <div class="fld"><label for="f-c">Contatti</label><input id="f-c" class="inp" value="${esc(a.contact)}" placeholder="Telefono o email" autocomplete="off"></div>`,
     `${id ? '<button class="btn danger" id="f-del">Elimina</button>' : ''}<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="f-ok">Salva</button>`,
     (el, m) => {
+      el.querySelectorAll('[data-openprog]').forEach(b => b.onclick = () => { el.remove(); openEditor(b.dataset.openprog); });
       const draw = () => {
         const box = $('#f-t', el); box.innerHTML = S.teams.map(t => `<button type="button" data-t="${t.id}" style="--tc:${t.color}" aria-pressed="${sel.has(t.id)}"><i></i>${esc(t.name)}</button>`).join('') || '<span class="rs">Nessuna ancora: scrivi un nome qui sotto.</span>';
         box.querySelectorAll('button').forEach(b => b.onclick = () => { const t = b.dataset.t; sel.has(t) ? sel.delete(t) : sel.add(t); b.setAttribute('aria-pressed', sel.has(t)); });
@@ -200,7 +203,7 @@ function setTeam(id) { S.team = id; try { localStorage.setItem('cd_team', id); }
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
   const t = e.target;
-  const nv = t.closest('[data-v]'); if (nv) { if (S.view === 'editor') closeEditor(); S.view = nv.dataset.v; S.open = false; shell(); return; }
+  const nv = t.closest('[data-v]'); if (nv) { if (S.view === 'editor' || S.view === 'print') closeEditor(); S.view = nv.dataset.v; S.open = false; shell(); return; }
   const a = t.closest('[data-a]');
   if (a) {
     const k = a.dataset.a;

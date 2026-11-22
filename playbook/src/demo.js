@@ -82,7 +82,13 @@ async function seed() {
     for (const [i, a] of DEMO.athletes.entries()) await Store.set('athletes', 'd' + (i + 1), { name: a[0], birth: a[1], role: a[2], injuries: a[3], contact: '', teamIds: a[4], createdAt: Date.now() });
   }
   if ((!meta || (meta.v || 1) < 2) && !has('programs')) await Store.set('programs', 'demo1', demoProgram());
-  if (!meta || (meta.v || 1) < 2) await Store.set('meta', 'app', { seeded: true, v: 2 });
+  // v3: un esempio di programma assegnato a un singolo atleta
+  const progs = Store.cols.programs || {};
+  if ((!meta || (meta.v || 1) < 3) && progs.demo1 && (Store.cols.athletes || {}).d1 && !Object.values(progs).some(p => p.athleteId)) {
+    const C = duplicateProgram({ id: 'demo1', ...clone(progs.demo1) }); C.name = progs.demo1.name; C.athleteId = 'd1'; C.teamId = ''; C.start = nextMonday(); C.sourceId = 'demo1';
+    await Store.set('programs', 'demo1-d1', C);
+  }
+  if (!meta || (meta.v || 1) < 3) await Store.set('meta', 'app', { seeded: true, v: 3 });
 }
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
@@ -98,7 +104,7 @@ async function boot() {
   Store.sub('programs', d => { S.programs = d; if (S.view === 'programs') page(); });
   await Store.connect();
   S.loaded.teams = S.loaded.athletes = true;
-  if (last.view === 'editor' && (Store.cols.programs || {})[last.pid]) { S.programs = Object.entries(Store.cols.programs).map(([id, d]) => ({ id, ...clone(d) })); openEditor(last.pid); }
+  if ((last.view === 'editor' || last.view === 'print') && (Store.cols.programs || {})[last.pid]) { S.programs = Object.entries(Store.cols.programs).map(([id, d]) => ({ id, ...clone(d) })); openEditor(last.pid); }
   else { if (last.view === 'programs') S.view = 'programs'; shell(); }
   maybeSeed();
 }

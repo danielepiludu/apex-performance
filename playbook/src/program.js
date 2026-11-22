@@ -24,10 +24,10 @@ function countEx(P) { let n = 0; eachRow(P, () => n++); return n; }
 function newBlock() { return { id: uid(), rest: '', rows: [] }; }
 function newWorkout(day, title) { return { id: uid(), day, title: title || 'Allenamento', blocks: [newBlock()] }; }
 function newPhase(name, weeks) { return { id: uid(), name: name || 'Fase', weeks: weeks || 4, workouts: [] }; }
-function newProgram({ name, teamId, weeks, days, loadMode }) {
+function newProgram({ name, teamId, weeks, days, loadMode, start }) {
   const ph = newPhase('Fase 1', weeks);
   ph.workouts = days.map((d, i) => newWorkout(d, 'Allenamento ' + LETTERS[i]));
-  return { name, teamId: teamId || '', loadMode: loadMode || 'auto', phases: [ph], createdAt: Date.now(), updatedAt: Date.now() };
+  return { name, teamId: teamId || '', athleteId: '', start: start || '', loadMode: loadMode || 'auto', phases: [ph], createdAt: Date.now(), updatedAt: Date.now() };
 }
 function freshIds(wo) { wo.id = uid(); wo.blocks.forEach(b => { b.id = uid(); b.rows.forEach(r => { r.id = uid(); }); }); return wo; }
 
