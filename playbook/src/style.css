@@ -286,19 +286,17 @@ table.sh{width:100%;border-collapse:collapse}
 /* ================= foglio a colori ================= */
 .sheet *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .sh-h{align-items:center}
-.sh-logo{flex:none;width:17mm;height:17mm;display:grid;place-items:center;margin-right:4mm}
+.sh-logo{flex:none;width:13mm;height:13mm;display:grid;place-items:center;margin-right:4mm}
 .sh-logo img{max-width:100%;max-height:100%;object-fit:contain}
 .sh-id{display:flex;align-items:center;gap:4mm;flex:1;min-width:0}
-.sh-ph{width:16mm;height:16mm;border-radius:50%;object-fit:cover;flex:none;border:1.5px solid #ddd}
-.sheet.color .sh-h{background:var(--ac);color:var(--act);border:0;border-radius:2.5mm;padding:4mm 6mm;margin-bottom:5mm}
-.sheet.color .sh-logo{background:#fff;border-radius:2mm;padding:1.3mm}
-.sheet.color .sh-ph{border:2px solid #fff}
-.sheet.color .sh-p,.sheet.color .sh-d{color:inherit;opacity:.85}
-.sheet.color .nline{border-bottom-color:currentColor;color:inherit;opacity:.8}
-.sheet.color .sh th{background:var(--acl);color:var(--acd);border-bottom:2px solid var(--ac)}
-.sheet.color .sh th.wc,.sheet.color .sh td.wc{border-left:1.5px solid var(--ac)}
-.sheet.color .sh tr.bk td{background:var(--bcl);color:var(--bcd);box-shadow:inset 4px 0 0 var(--bc);padding-left:9px;border-bottom:0}
-.sheet.color .sh td.cod{color:var(--bcd);box-shadow:inset 4px 0 0 var(--bc)}
+.sh-ph{width:12mm;height:12mm;border-radius:50%;object-fit:cover;flex:none;border:1.5px solid #ddd}
+.sheet.color .sh-h{border-bottom:2px solid var(--ac);padding-bottom:3mm;margin-bottom:4mm}
+.sheet.color .sh-n{color:#111}
+.sheet.color .sh-w{color:var(--acd)}
+.sheet.color .sh th{color:var(--acd);border-bottom:1.5px solid var(--ac)}
+.sheet.color .sh th.wc,.sheet.color .sh td.wc{border-left:1px solid #b9bec7}
+.sheet.color .sh tr.bk td{background:none;color:var(--bcd);box-shadow:inset 3px 0 0 var(--bc);padding:5px 6px 2px 9px;border-bottom:1px solid var(--bc)}
+.sheet.color .sh td.cod{color:var(--bcd);box-shadow:inset 3px 0 0 var(--bc)}
 .sheet.color .sh td{border-bottom-color:#dcdfe4}
 .sheet.color .sh td.bx{box-shadow:inset 0 0 0 1px #c9ced6}
-.sheet.color .wo-t{color:var(--acd);box-shadow:inset 4px 0 0 var(--ac);padding:3px 0 3px 9px;background:var(--acl);border-radius:0 2mm 2mm 0}
+.sheet.color .wo-t{color:var(--acd);border-bottom:1px solid var(--ac);padding:0 0 2px}
