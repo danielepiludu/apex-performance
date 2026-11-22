@@ -1,4 +1,4 @@
-# DP Performance (ex Playbook) — brief di passaggio a Claude Code
+# Apex Performance (ex Playbook) — brief di passaggio a Claude Code
 
 ## Chi è l'utente e come lavora
 Preparatore atletico/S&C (basket e altri sport), italiano, NON programmatore. Vuole vedere il risultato a fine di ogni fase e dare l'ok. Risposte e interfaccia in italiano, brevi. Odia le interfacce lente, "giocattolose" o con troppi passaggi.
@@ -39,7 +39,7 @@ Team(id, nome, colore) · Athlete(id, nome, nascita, ruolo, infortuni/note, cont
 
 - **Progetto concluso per ora** (22/11/2026): l'utente considera l'app completa così. Fase 4 (nome/logo personale sui fogli, invio WhatsApp/email) non richiesta. Per modifiche future: aprire una sessione su questo repository, leggere questo file, modificare `playbook/src/*`, poi `python3 playbook/build.py` e fare push: GitHub Pages pubblica da solo.
 
-- **Nome e marchio**: l'app si chiama **DP Performance** (costante APP_NAME in `src/util.js`). Logo originale in `playbook/brand/dp-logo.webp`; icone e marchio per la barra laterale (`icons/logo-mark.png`, inserito nella pagina dalla build) generati da quel file. Indirizzo e repository restano "playbook". I dati salvati non cambiano (chiavi interne invariate).
+- **Nome e marchio**: l'app si chiama **Apex Performance** (costante APP_NAME in `src/util.js`, manifest, shell). Marchio: una A a forma di vetta con la punta rossa, `playbook/brand/apex-mark.svg`; icone e `icons/logo-mark.png` (inserito nella pagina dalla build) generati da quel disegno. Indirizzo e repository restano "playbook". I dati salvati non cambiano (chiavi interne invariate).
 
 ## Stato dei lavori
 - **Aggiunte dopo la Fase 2 (richieste dell'utente)**: programma assegnato a un atleta (Program.athleteId; "Assegna" crea una copia per ogni atleta con data di inizio, visibile nella scheda atleta come storico personale; il menu squadra filtra anche i programmi personali degli atleti del gruppo). Annulla/ripristina (Ctrl+Z, Ctrl+Shift+Z/Ctrl+Y e pulsanti ↶ ↷) nell'editor. Pagina "Stampa per l'atleta" separata dall'editor (`src/print.js`): foglio bianco A4 con settimane affiancate (orizzontale, un foglio per allenamento) o una settimana (verticale), kg scritti o vuoti, spazio facoltativo per i kg usati, stampa con window.print() / Salva come PDF.

@@ -113,7 +113,7 @@ function exportBackup() {
   const data = { app: 'playbook', version: 1, exportedAt: new Date().toISOString(), cols: {} };
   BACKUP_COLS.forEach(c => { data.cols[c] = Store.cols[c] || {}; });
   const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), a = document.createElement('a');
-  a.href = URL.createObjectURL(blob); a.download = `dp-performance-backup-${todayISO()}.json`;
+  a.href = URL.createObjectURL(blob); a.download = `apex-performance-backup-${todayISO()}.json`;
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
   toast('Backup salvato');
 }

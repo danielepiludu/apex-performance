@@ -371,7 +371,7 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
   .lgr .lgc{grid-area:c}.lgr .lgn{grid-area:n}.lgr [data-rm]{grid-area:x}
   .lgr label:nth-of-type(2){grid-area:s}.lgr label:nth-of-type(3){grid-area:r}.lgr .kg{grid-area:k}.lgr .nt{grid-area:t}
 }
-/* marchio DP */
-.lmark{height:28px;width:auto;flex:none;display:block}
+/* marchio Apex */
+.lmark{height:26px;width:auto;flex:none;display:block}
 .logo.big .lmark{height:52px}
 .side.min .logo{padding-left:4px;padding-right:0}
