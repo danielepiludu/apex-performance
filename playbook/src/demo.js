@@ -77,6 +77,16 @@ function demoProgram() {
 }
 async function seed() {
   const meta = (Store.cols.meta || {}).app;
+  // primo accesso con un account vuoto: se su questo dispositivo ci sono dati usati senza account, li porto nell'account
+  if (Store.mode === 'db' && !meta && !Object.keys(Store.cols.teams || {}).length && !Object.keys(Store.cols.athletes || {}).length && !Object.keys(Store.cols.programs || {}).length) {
+    const loc = (await Store.peek('cache:local')) || (await Store.peek('cache'));
+    const lc = loc && loc.cols;
+    if (lc && ['teams', 'athletes', 'programs'].some(c => Object.keys(lc[c] || {}).length)) {
+      for (const c of ['teams', 'athletes', 'programs', 'meta']) for (const [id, d] of Object.entries(lc[c] || {})) await Store.set(c, id, d);
+      toast('Ho portato nel tuo account i dati di questo dispositivo');
+      return;
+    }
+  }
   const has = c => Object.keys(Store.cols[c] || {}).length > 0;
   if (!meta && !(has('teams') || has('athletes'))) {
     for (const [id, t] of Object.entries(DEMO.teams)) await Store.set('teams', id, { name: t.name, color: t.color, createdAt: Date.now() });
@@ -96,8 +106,16 @@ async function seed() {
 }
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
+  let key = 'local';
+  if (cloudInit() && !localOnly()) {
+    $('#app').innerHTML = '<div class="login"><div class="logo big"><i>' + ic('bolt') + '</i><span>Playbook</span></div></div>';
+    await cloudRedirectResult();
+    const u = await cloudFirstUser(6000);
+    if (!u) { loginScreen(); return; }
+    key = u.uid;
+  } else if (Cloud.on && localOnly()) { cloudFirstUser(3000); }
   shell();
-  const cached = await Store.open();
+  const cached = await Store.open(key);
   let seeded = false;
   // il demo si crea solo quando i dati sono disponibili, mai da una cache vuota offline
   const maybeSeed = () => { if (seeded) return; if (Store.mode === 'mem' || (Store.remote.teams && Store.remote.athletes && Store.remote.meta && Store.remote.programs)) { seeded = true; seed(); } };

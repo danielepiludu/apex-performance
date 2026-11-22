@@ -7,48 +7,63 @@ const ICON = {
   wk: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4v2h6V4M9 11h6M9 15h6"/>',
   prog: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', side: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>', hist: '<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"/><path d="M4 4v4.7h4.7M12 8v4l3 2"/>', more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', back: '<path d="M15 5l-7 7 7 7"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
+  plus: '<path d="M12 5v14M5 12h14"/>', hist: '<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"/><path d="M4 4v4.7h4.7M12 8v4l3 2"/>', more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', back: '<path d="M15 5l-7 7 7 7"/>', gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
 };
 const ic = k => `<svg viewBox="0 0 24 24">${ICON[k]}</svg>`;
 const NAV = [
-  ['agent', 'Assistente', 'agent', 5], ['athletes', 'Atleti e squadre', 'ath'],
+  ['athletes', 'Atleti e squadre', 'ath'],
   ['programs', 'Programmi', 'prog'], ['history', 'Storico', 'hist', 3]
 ];
 /* ---------- store: offline-first (local copy + queue), syncs to the shared db when online ---------- */
 const Store = {
   mode: 'init', hadDb: false, failed: false, db: null, cols: {}, subs: {}, pend: [], flushing: false, remote: {}, idb: null, listeners: [], watching: {},
   note() { this.listeners.forEach(f => f()); },
+  key: 'local',
   status() {
-    if (this.mode === 'mem') return ['ok', 'Salvato su questo dispositivo'];
-    if (!this.db || this.failed) return ['off', this.pend.length ? `Offline · ${this.pend.length} modifiche da sincronizzare` : 'Offline · dati sul dispositivo'];
+    if (this.mode === 'mem') return ['ok', Cloud.on ? 'Solo su questo dispositivo' : 'Salvato su questo dispositivo'];
+    const off = navigator.onLine === false || this.failed;
+    if (off) return ['off', this.pend.length ? `Offline · ${this.pend.length} ${this.pend.length === 1 ? 'modifica' : 'modifiche'} da sincronizzare` : 'Offline · dati sul dispositivo'];
     if (this.pend.length) return ['pend', `Sincronizzo ${this.pend.length}…`];
-    return ['ok', 'Salvato'];
+    return ['ok', 'Sincronizzato'];
   },
-  async open() {
+  async idbOpen() {
+    if (this.idb) return this.idb;
+    this.idb = await new Promise((res, rej) => { const r = indexedDB.open('playbook', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); setTimeout(() => rej(new Error('idb timeout')), 1500); });
+    return this.idb;
+  },
+  async peek(key) {
+    try { const db = await this.idbOpen(); return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(key); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; }
+  },
+  /* ogni account ha la sua copia sul dispositivo: 'cache:local' senza account, 'cache:<uid>' con Google */
+  async open(key) {
+    this.key = key || 'local';
     try {
-      this.idb = await new Promise((res, rej) => { const r = indexedDB.open('playbook', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); setTimeout(() => rej(new Error('idb timeout')), 1500); });
-      const v = await new Promise(res => { const q = this.idb.transaction('kv').objectStore('kv').get('cache'); q.onsuccess = () => res(q.result); q.onerror = () => res(null); });
+      let v = await this.peek('cache:' + this.key);
+      if (!v && this.key === 'local') v = await this.peek('cache'); // dati salvati dalle versioni precedenti
       if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; this.hadDb = !!v.hadDb; return true; }
-    } catch (e) { this.idb = null; try { const v = JSON.parse(localStorage.getItem('pb_cache') || 'null'); if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; this.hadDb = !!v.hadDb; return true; } } catch (e2) { } }
+    } catch (e) { this.idb = null; try { const v = JSON.parse(localStorage.getItem('pb_cache:' + this.key) || 'null'); if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; return true; } } catch (e2) { } }
     return false;
   },
   persist() {
     const v = { cols: this.cols, pend: this.pend, hadDb: this.hadDb };
-    try { if (this.idb) { this.idb.transaction('kv', 'readwrite').objectStore('kv').put(v, 'cache'); return; } } catch (e) { }
-    try { localStorage.setItem('pb_cache', JSON.stringify(v)); } catch (e) { }
+    try { if (this.idb) { this.idb.transaction('kv', 'readwrite').objectStore('kv').put(v, 'cache:' + this.key); return; } } catch (e) { }
+    try { localStorage.setItem('pb_cache:' + this.key, JSON.stringify(v)); } catch (e) { }
   },
   async connect() {
-    // Fase 6: qui si collega Firestore (sincronizzazione tra dispositivi). Per ora i dati restano sul dispositivo.
-    this.mode = 'mem';
+    if (Cloud.on && Cloud.user) { this.db = cloudDb(Cloud.user.uid); this.mode = 'db'; this.hadDb = true; this.failed = false; }
+    else this.mode = 'mem';
     Object.keys(this.subs).forEach(c => this.watch(c)); this.flush(); this.note();
   },
   watch(col) {
     if (!this.db || this.watching[col]) return; this.watching[col] = true;
     this.db.collection(col).onSnapshot(s => {
+      // finché il server non ha risposto, la cache di Firestore può essere vuota: teniamo la nostra copia
+      if (s.fromCache && !this.remote[col] && !s.docs.length && Object.keys(this.cols[col] || {}).length) return;
       const m = {}; s.docs.forEach(d => { m[d.id] = d.data(); });
       for (const p of this.pend) if (p.col === col) { if (p.op === 'set') m[p.id] = clone(p.data); else delete m[p.id]; }
-      this.cols[col] = m; this.remote[col] = true; this.persist(); this.emit(col); this.note();
-    }, e => { console.error(e); this.failed = true; this.watching[col] = false; this.note(); });
+      if (!s.fromCache) { this.remote[col] = true; this.failed = false; }
+      this.cols[col] = m; this.persist(); this.emit(col); this.note();
+    }, e => { console.error(e); this.failed = true; this.watching[col] = false; this.note(); setTimeout(() => this.watch(col), 20000); });
   },
   sub(col, cb) {
     (this.subs[col] = this.subs[col] || []).push(cb);
@@ -69,7 +84,7 @@ const Store = {
     this.flushing = false; this.note();
   }
 };
-window.addEventListener('online', () => { if (Store.mode === 'offline') Store.connect(); else Store.flush(); });
+window.addEventListener('online', () => { Store.failed = false; Store.flush(); Store.note(); });
 window.addEventListener('offline', () => Store.note());
 /* ---------- state ---------- */
 const S = { view: 'athletes', team: 'all', teams: [], athletes: [], programs: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false }, pid: null, P: null, density: 'normal', mw: 0 };
@@ -101,7 +116,7 @@ function shell() {
     <div class="logo"><i>${ic('bolt')}</i><span>Playbook</span></div>
     ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
-    <div class="sfoot"><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
+    <div class="sfoot"><button class="nv" data-v="settings" ${S.view === 'settings' ? 'aria-current="page"' : ''}>${ic('gear')}<span>Impostazioni</span></button><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
   </aside>
   <div class="main">
     <header class="bar">
@@ -127,6 +142,7 @@ function page() {
   if (S.view === 'programs') return programsView(el);
   if (S.view === 'editor') return editorView(el);
   if (S.view === 'print') return printView(el);
+  if (S.view === 'settings') return settingsView(el);
     const n = NAV.find(x => x[0] === S.view) || [];
   el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
 }

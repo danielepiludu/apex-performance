@@ -2,8 +2,17 @@
 <html lang="it">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Playbook</title>
+<meta name="theme-color" content="#09090A">
+<meta name="description" content="Programmi di allenamento per preparatori atletici">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Playbook">
 <style>
 :root{--bg:#09090A;--panel:#111113;--panel2:#18181B;--line:#26262B;--ink:#EDEDEF;--muted:#8A8A93;--accent:#E5262D;--accent-soft:rgba(229,38,45,.14);--good:#3DC57C;
 --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,Arial,sans-serif;color-scheme:dark}
@@ -308,10 +317,27 @@ table.sh{width:100%;border-collapse:collapse}
 .sheet.color .sh td.bx{box-shadow:inset 0 0 0 1px #c9ced6}
 .sheet.color .wo-t{color:var(--acd);border-bottom:1px solid var(--ac);padding:0 0 2px}
 
+/* ================= accesso e impostazioni ================= */
+.login{min-height:100vh;min-height:100dvh;width:100%;display:grid;place-items:center;padding:24px}
+.lcard{width:100%;max-width:380px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:32px 26px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px}
+.logo.big{padding:0;font-size:26px;gap:12px}.logo.big i{width:44px;height:44px;border-radius:12px}.logo.big i svg{width:24px;height:24px;fill:#fff;stroke:#fff}
+.lcard .muted{margin:0;font-size:14px}
+.gbtn{background:#fff;color:#1f1f1f;border-color:#fff;height:46px;width:100%;justify-content:center;font-size:15px;gap:10px}.gbtn:hover{filter:brightness(.95)}
+.lerr{color:#ff8a8f;font-size:13px;margin:0;min-height:1em}
+.sets{display:flex;flex-direction:column;gap:14px;max-width:640px}
+.sbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+.sbox h3{margin:0 0 10px;font-size:15px}.sbox p{margin:6px 0}
+.srow{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.av.sm{width:40px;height:40px;background:#333}
+.sbox .sd{display:inline-block;margin-right:4px}
+.sbox label.btn{cursor:pointer}
+
 </style>
 </head>
 <body>
 <div id="app"></div>
+<script src="config.js"></script>
+<script src="firebase.js"></script>
 <script>
 /* ============ utilità comuni ============ */
 const $ = (s, r = document) => r.querySelector(s);
@@ -649,6 +675,139 @@ const tint = (h, a) => mixHex(h, '#ffffff', 1 - a);
 const shade = (h, a = 0.35) => mixHex(h, '#000000', a);
 function isLight(h) { const [r, g, b] = hexRgb(h).map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.45; }
 
+/* ============ Firebase: accesso con Google + database sincronizzato ============
+   La configurazione sta in config.js (window.FIREBASE_CONFIG). Se manca, l'app funziona
+   solo sul dispositivo. Firestore tiene una copia offline: l'app parte anche senza rete. */
+const Cloud = { on: false, app: null, auth: null, fs: null, user: null, installEvt: null };
+function cloudInit() {
+  const cfg = window.FIREBASE_CONFIG;
+  if (!cfg || !cfg.apiKey || !window.FB) return false;
+  try {
+    Cloud.app = FB.initializeApp(cfg);
+    Cloud.auth = FB.getAuth(Cloud.app);
+    Cloud.fs = FB.initializeFirestore(Cloud.app, { localCache: FB.persistentLocalCache({ tabManager: FB.persistentMultipleTabManager() }) });
+    const emu = window.FIREBASE_EMULATOR;
+    if (emu) { FB.connectAuthEmulator(Cloud.auth, emu.auth, { disableWarnings: true }); FB.connectFirestoreEmulator(Cloud.fs, emu.host, emu.port); }
+    Cloud.on = true;
+  } catch (e) { console.error(e); Cloud.on = false; }
+  return Cloud.on;
+}
+/* primo stato dell'accesso (anche offline: Firebase ricorda l'utente sul dispositivo) */
+function cloudFirstUser(ms) {
+  return new Promise(res => {
+    let done = false; const fin = u => { if (!done) { done = true; Cloud.user = u || null; res(Cloud.user); } };
+    FB.onAuthStateChanged(Cloud.auth, fin);
+    setTimeout(() => fin(Cloud.auth.currentUser), ms);
+  });
+}
+/* adattatore: stessa forma usata dallo Store (collection/doc/onSnapshot) */
+function cloudDb(uid) {
+  const col = c => FB.collection(Cloud.fs, 'users', uid, c), dref = (c, id) => FB.doc(Cloud.fs, 'users', uid, c, id);
+  return {
+    collection: c => ({
+      onSnapshot: (cb, err) => FB.onSnapshot(col(c), { includeMetadataChanges: true }, s => cb({ fromCache: s.metadata.fromCache, docs: s.docs.map(d => ({ id: d.id, data: () => d.data() })) }), err),
+      doc: id => ({ set: data => FB.setDoc(dref(c, id), data), delete: () => FB.deleteDoc(dref(c, id)) })
+    })
+  };
+}
+const localOnly = () => { try { return localStorage.getItem('pb_localonly') === '1'; } catch (e) { return false; } };
+const setLocalOnly = on => { try { on ? localStorage.setItem('pb_localonly', '1') : localStorage.removeItem('pb_localonly'); } catch (e) { } };
+async function googleLogin(btn, msg) {
+  const prov = new FB.GoogleAuthProvider(); prov.setCustomParameters({ prompt: 'select_account' });
+  btn.disabled = true; msg.textContent = '';
+  try { await FB.signInWithPopup(Cloud.auth, prov); setLocalOnly(false); location.reload(); }
+  catch (e) {
+    const c = e && e.code || '';
+    if (/popup-blocked|operation-not-supported|web-storage-unsupported/.test(c)) { try { await FB.signInWithRedirect(Cloud.auth, prov); return; } catch (e2) { } }
+    btn.disabled = false;
+    msg.textContent = /popup-closed|cancelled-popup/.test(c) ? '' : /network/.test(c) ? 'Serve la connessione per il primo accesso. Riprova quando sei online.' : /unauthorized-domain/.test(c) ? 'Questo indirizzo non è autorizzato in Firebase (Authentication → Impostazioni → Domini autorizzati).' : 'Accesso non riuscito: ' + (c || 'errore');
+  }
+}
+function loginScreen() {
+  $('#app').innerHTML = `<div class="login"><div class="lcard">
+    <div class="logo big"><i>${ic('bolt')}</i><span>Playbook</span></div>
+    <p class="muted">Programmi di allenamento. Accedi per avere gli stessi dati su PC, tablet e telefono.</p>
+    <button class="btn gbtn" id="lg-go"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Accedi con Google</button>
+    <p class="lerr" id="lg-msg" role="alert"></p>
+    <button class="lnk" id="lg-local">Usa senza account (dati solo su questo dispositivo)</button></div></div>`;
+  $('#lg-go').onclick = () => googleLogin($('#lg-go'), $('#lg-msg'));
+  $('#lg-local').onclick = () => { setLocalOnly(true); location.reload(); };
+}
+/* dopo un accesso con reindirizzamento (telefono) */
+async function cloudRedirectResult() { try { await FB.getRedirectResult(Cloud.auth); } catch (e) { } }
+
+/* ---------- app installabile + aggiornamenti ---------- */
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); Cloud.installEvt = e; if (S.view === 'settings') page(); });
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => { }); });
+}
+const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+/* ---------- impostazioni: account, app, backup, dati di esempio ---------- */
+const DEMO_IDS = { teams: ['t1', 't2'], athletes: ['d1', 'd2', 'd3', 'd4', 'd5'], programs: ['demo1', 'demo1-d1'] };
+function settingsView(el) {
+  const [k, st] = Store.status(), u = Cloud.user;
+  const demoLeft = Object.entries(DEMO_IDS).reduce((n, [c, ids]) => n + ids.filter(id => (Store.cols[c] || {})[id]).length, 0);
+  el.innerHTML = `<div class="ph"><div><h1>Impostazioni</h1></div></div>
+  <div class="sets">
+    <section class="sbox"><h3>Account e sincronizzazione</h3>
+      ${Cloud.on ? (u ? `<div class="srow"><div class="av sm">${u.photoURL ? `<img src="${esc(u.photoURL)}" alt="">` : esc(initials(u.displayName || u.email))}</div><div><b>${esc(u.displayName || '')}</b><div class="rs">${esc(u.email || '')}</div></div><div class="grow"></div><button class="btn sm" data-s="logout">Esci</button></div>
+          <p class="rs"><i class="sd ${k}"></i> ${esc(st)}. I dati restano anche senza rete e si allineano da soli appena torna la connessione.</p>`
+        : `<p class="rs">Stai usando l'app senza account: i dati sono solo su questo dispositivo.</p><button class="btn pri" data-s="login">Accedi con Google per sincronizzare</button><p class="lerr" id="s-msg"></p>`)
+      : '<p class="rs">Sincronizzazione non ancora configurata: i dati sono solo su questo dispositivo.</p>'}
+    </section>
+    <section class="sbox"><h3>App sul telefono e sul PC</h3>
+      ${isStandalone() ? '<p class="rs">Stai usando l\'app installata. Funziona anche senza rete.</p>'
+        : Cloud.installEvt ? '<p class="rs">Installa Playbook: avrai l\'icona sulla schermata Home e si aprirà anche senza rete.</p><button class="btn pri" data-s="install">Installa l\'app</button>'
+        : isIOS() ? '<p class="rs">Su iPhone e iPad: apri questa pagina con Safari, tocca <b>Condividi</b> (il quadrato con la freccia) e poi <b>Aggiungi alla schermata Home</b>.</p>'
+        : '<p class="rs">Dal menu del browser scegli <b>Installa app</b> o <b>Aggiungi a schermata Home</b>.</p>'}
+    </section>
+    <section class="sbox"><h3>Backup</h3>
+      <p class="rs">Salva una copia di tutti i dati in un file, da tenere al sicuro o da reimportare.</p>
+      <div class="mf" style="margin-top:8px"><button class="btn" data-s="export">Esporta backup</button><label class="btn">Importa backup<input type="file" accept=".json,application/json" id="s-imp" hidden></label></div>
+    </section>
+    ${demoLeft ? `<section class="sbox"><h3>Dati di esempio</h3><p class="rs">La squadra "Baseball Demo", i 5 atleti di prova e il programma di esempio servono solo per provare l'app.</p>
+      <button class="btn danger" data-s="demo">Elimina i dati di esempio</button></section>` : ''}
+  </div>`;
+  el.onclick = async e => {
+    const b = e.target.closest('[data-s]'); if (!b) return;
+    const a = b.dataset.s;
+    if (a === 'logout') { if (!b.dataset.ok) { b.dataset.ok = 1; b.textContent = 'Confermi?'; return; } await FB.signOut(Cloud.auth); location.reload(); }
+    else if (a === 'login') googleLogin(b, $('#s-msg'));
+    else if (a === 'install' && Cloud.installEvt) { Cloud.installEvt.prompt(); Cloud.installEvt = null; }
+    else if (a === 'export') exportBackup();
+    else if (a === 'demo') {
+      if (!b.dataset.ok) { b.dataset.ok = 1; b.textContent = 'Confermi? Elimina squadra, atleti e programmi di esempio'; return; }
+      for (const [c, ids] of Object.entries(DEMO_IDS)) for (const id of ids) if ((Store.cols[c] || {})[id]) await Store.del(c, id);
+      if (S.team === 't1' || S.team === 't2') setTeam('all'); toast('Dati di esempio eliminati'); page();
+    }
+  };
+  const imp = $('#s-imp', el); if (imp) imp.onchange = () => importBackup(imp);
+}
+const BACKUP_COLS = ['teams', 'athletes', 'programs', 'meta'];
+function exportBackup() {
+  const data = { app: 'playbook', version: 1, exportedAt: new Date().toISOString(), cols: {} };
+  BACKUP_COLS.forEach(c => { data.cols[c] = Store.cols[c] || {}; });
+  const blob = new Blob([JSON.stringify(data)], { type: 'application/json' }), a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = `playbook-backup-${todayISO()}.json`;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  toast('Backup salvato');
+}
+async function importBackup(inp) {
+  const f = inp.files && inp.files[0]; inp.value = ''; if (!f) return;
+  let data; try { data = JSON.parse(await f.text()); } catch (e) { toast('File non valido'); return; }
+  if (!data || data.app !== 'playbook' || !data.cols) { toast('Questo file non è un backup di Playbook'); return; }
+  const n = BACKUP_COLS.reduce((s, c) => s + Object.keys(data.cols[c] || {}).length, 0);
+  modal('Importa backup', `<p>Il file contiene ${n} elementi (squadre, atleti, programmi) del ${esc(fmtDate((data.exportedAt || '').slice(0, 10)))}.</p><p class="rs">Gli elementi con lo stesso identificativo vengono sostituiti; gli altri dati restano.</p>`,
+    '<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="imp-ok">Importa</button>', (el, m) => {
+      $('#imp-ok', el).onclick = async () => {
+        for (const c of BACKUP_COLS) for (const [id, d] of Object.entries(data.cols[c] || {})) await Store.set(c, id, d);
+        m.close(); toast('Backup importato');
+      };
+    });
+}
+
 const COLORS = ['#E5262D', '#3B82F6', '#F5B02A', '#A855F7', '#22C55E', '#EC4899', '#14B8A6', '#F97316'];
 const ICON = {
   agent: '<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
@@ -658,48 +817,63 @@ const ICON = {
   wk: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4v2h6V4M9 11h6M9 15h6"/>',
   prog: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', side: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>', hist: '<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"/><path d="M4 4v4.7h4.7M12 8v4l3 2"/>', more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', back: '<path d="M15 5l-7 7 7 7"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
+  plus: '<path d="M12 5v14M5 12h14"/>', hist: '<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"/><path d="M4 4v4.7h4.7M12 8v4l3 2"/>', more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', back: '<path d="M15 5l-7 7 7 7"/>', gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
 };
 const ic = k => `<svg viewBox="0 0 24 24">${ICON[k]}</svg>`;
 const NAV = [
-  ['agent', 'Assistente', 'agent', 5], ['athletes', 'Atleti e squadre', 'ath'],
+  ['athletes', 'Atleti e squadre', 'ath'],
   ['programs', 'Programmi', 'prog'], ['history', 'Storico', 'hist', 3]
 ];
 /* ---------- store: offline-first (local copy + queue), syncs to the shared db when online ---------- */
 const Store = {
   mode: 'init', hadDb: false, failed: false, db: null, cols: {}, subs: {}, pend: [], flushing: false, remote: {}, idb: null, listeners: [], watching: {},
   note() { this.listeners.forEach(f => f()); },
+  key: 'local',
   status() {
-    if (this.mode === 'mem') return ['ok', 'Salvato su questo dispositivo'];
-    if (!this.db || this.failed) return ['off', this.pend.length ? `Offline · ${this.pend.length} modifiche da sincronizzare` : 'Offline · dati sul dispositivo'];
+    if (this.mode === 'mem') return ['ok', Cloud.on ? 'Solo su questo dispositivo' : 'Salvato su questo dispositivo'];
+    const off = navigator.onLine === false || this.failed;
+    if (off) return ['off', this.pend.length ? `Offline · ${this.pend.length} ${this.pend.length === 1 ? 'modifica' : 'modifiche'} da sincronizzare` : 'Offline · dati sul dispositivo'];
     if (this.pend.length) return ['pend', `Sincronizzo ${this.pend.length}…`];
-    return ['ok', 'Salvato'];
+    return ['ok', 'Sincronizzato'];
   },
-  async open() {
+  async idbOpen() {
+    if (this.idb) return this.idb;
+    this.idb = await new Promise((res, rej) => { const r = indexedDB.open('playbook', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); setTimeout(() => rej(new Error('idb timeout')), 1500); });
+    return this.idb;
+  },
+  async peek(key) {
+    try { const db = await this.idbOpen(); return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(key); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); }); } catch (e) { return null; }
+  },
+  /* ogni account ha la sua copia sul dispositivo: 'cache:local' senza account, 'cache:<uid>' con Google */
+  async open(key) {
+    this.key = key || 'local';
     try {
-      this.idb = await new Promise((res, rej) => { const r = indexedDB.open('playbook', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); setTimeout(() => rej(new Error('idb timeout')), 1500); });
-      const v = await new Promise(res => { const q = this.idb.transaction('kv').objectStore('kv').get('cache'); q.onsuccess = () => res(q.result); q.onerror = () => res(null); });
+      let v = await this.peek('cache:' + this.key);
+      if (!v && this.key === 'local') v = await this.peek('cache'); // dati salvati dalle versioni precedenti
       if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; this.hadDb = !!v.hadDb; return true; }
-    } catch (e) { this.idb = null; try { const v = JSON.parse(localStorage.getItem('pb_cache') || 'null'); if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; this.hadDb = !!v.hadDb; return true; } } catch (e2) { } }
+    } catch (e) { this.idb = null; try { const v = JSON.parse(localStorage.getItem('pb_cache:' + this.key) || 'null'); if (v) { this.cols = v.cols || {}; this.pend = v.pend || []; return true; } } catch (e2) { } }
     return false;
   },
   persist() {
     const v = { cols: this.cols, pend: this.pend, hadDb: this.hadDb };
-    try { if (this.idb) { this.idb.transaction('kv', 'readwrite').objectStore('kv').put(v, 'cache'); return; } } catch (e) { }
-    try { localStorage.setItem('pb_cache', JSON.stringify(v)); } catch (e) { }
+    try { if (this.idb) { this.idb.transaction('kv', 'readwrite').objectStore('kv').put(v, 'cache:' + this.key); return; } } catch (e) { }
+    try { localStorage.setItem('pb_cache:' + this.key, JSON.stringify(v)); } catch (e) { }
   },
   async connect() {
-    // Fase 6: qui si collega Firestore (sincronizzazione tra dispositivi). Per ora i dati restano sul dispositivo.
-    this.mode = 'mem';
+    if (Cloud.on && Cloud.user) { this.db = cloudDb(Cloud.user.uid); this.mode = 'db'; this.hadDb = true; this.failed = false; }
+    else this.mode = 'mem';
     Object.keys(this.subs).forEach(c => this.watch(c)); this.flush(); this.note();
   },
   watch(col) {
     if (!this.db || this.watching[col]) return; this.watching[col] = true;
     this.db.collection(col).onSnapshot(s => {
+      // finché il server non ha risposto, la cache di Firestore può essere vuota: teniamo la nostra copia
+      if (s.fromCache && !this.remote[col] && !s.docs.length && Object.keys(this.cols[col] || {}).length) return;
       const m = {}; s.docs.forEach(d => { m[d.id] = d.data(); });
       for (const p of this.pend) if (p.col === col) { if (p.op === 'set') m[p.id] = clone(p.data); else delete m[p.id]; }
-      this.cols[col] = m; this.remote[col] = true; this.persist(); this.emit(col); this.note();
-    }, e => { console.error(e); this.failed = true; this.watching[col] = false; this.note(); });
+      if (!s.fromCache) { this.remote[col] = true; this.failed = false; }
+      this.cols[col] = m; this.persist(); this.emit(col); this.note();
+    }, e => { console.error(e); this.failed = true; this.watching[col] = false; this.note(); setTimeout(() => this.watch(col), 20000); });
   },
   sub(col, cb) {
     (this.subs[col] = this.subs[col] || []).push(cb);
@@ -720,7 +894,7 @@ const Store = {
     this.flushing = false; this.note();
   }
 };
-window.addEventListener('online', () => { if (Store.mode === 'offline') Store.connect(); else Store.flush(); });
+window.addEventListener('online', () => { Store.failed = false; Store.flush(); Store.note(); });
 window.addEventListener('offline', () => Store.note());
 /* ---------- state ---------- */
 const S = { view: 'athletes', team: 'all', teams: [], athletes: [], programs: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false }, pid: null, P: null, density: 'normal', mw: 0 };
@@ -752,7 +926,7 @@ function shell() {
     <div class="logo"><i>${ic('bolt')}</i><span>Playbook</span></div>
     ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
-    <div class="sfoot"><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
+    <div class="sfoot"><button class="nv" data-v="settings" ${S.view === 'settings' ? 'aria-current="page"' : ''}>${ic('gear')}<span>Impostazioni</span></button><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
   </aside>
   <div class="main">
     <header class="bar">
@@ -778,6 +952,7 @@ function page() {
   if (S.view === 'programs') return programsView(el);
   if (S.view === 'editor') return editorView(el);
   if (S.view === 'print') return printView(el);
+  if (S.view === 'settings') return settingsView(el);
     const n = NAV.find(x => x[0] === S.view) || [];
   el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
 }
@@ -1678,6 +1853,16 @@ function demoProgram() {
 }
 async function seed() {
   const meta = (Store.cols.meta || {}).app;
+  // primo accesso con un account vuoto: se su questo dispositivo ci sono dati usati senza account, li porto nell'account
+  if (Store.mode === 'db' && !meta && !Object.keys(Store.cols.teams || {}).length && !Object.keys(Store.cols.athletes || {}).length && !Object.keys(Store.cols.programs || {}).length) {
+    const loc = (await Store.peek('cache:local')) || (await Store.peek('cache'));
+    const lc = loc && loc.cols;
+    if (lc && ['teams', 'athletes', 'programs'].some(c => Object.keys(lc[c] || {}).length)) {
+      for (const c of ['teams', 'athletes', 'programs', 'meta']) for (const [id, d] of Object.entries(lc[c] || {})) await Store.set(c, id, d);
+      toast('Ho portato nel tuo account i dati di questo dispositivo');
+      return;
+    }
+  }
   const has = c => Object.keys(Store.cols[c] || {}).length > 0;
   if (!meta && !(has('teams') || has('athletes'))) {
     for (const [id, t] of Object.entries(DEMO.teams)) await Store.set('teams', id, { name: t.name, color: t.color, createdAt: Date.now() });
@@ -1697,8 +1882,16 @@ async function seed() {
 }
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
+  let key = 'local';
+  if (cloudInit() && !localOnly()) {
+    $('#app').innerHTML = '<div class="login"><div class="logo big"><i>' + ic('bolt') + '</i><span>Playbook</span></div></div>';
+    await cloudRedirectResult();
+    const u = await cloudFirstUser(6000);
+    if (!u) { loginScreen(); return; }
+    key = u.uid;
+  } else if (Cloud.on && localOnly()) { cloudFirstUser(3000); }
   shell();
-  const cached = await Store.open();
+  const cached = await Store.open(key);
   let seeded = false;
   // il demo si crea solo quando i dati sono disponibili, mai da una cache vuota offline
   const maybeSeed = () => { if (seeded) return; if (Store.mode === 'mem' || (Store.remote.teams && Store.remote.athletes && Store.remote.meta && Store.remote.programs)) { seeded = true; seed(); } };
