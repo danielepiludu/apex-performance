@@ -12,7 +12,7 @@ const ICON = {
 const ic = k => `<svg viewBox="0 0 24 24">${ICON[k]}</svg>`;
 const NAV = [
   ['athletes', 'Atleti e squadre', 'ath'],
-  ['programs', 'Programmi', 'prog'], ['history', 'Storico', 'hist', 3]
+  ['programs', 'Programmi', 'prog'], ['history', 'Storico', 'hist']
 ];
 /* ---------- store: offline-first (local copy + queue), syncs to the shared db when online ---------- */
 const Store = {
@@ -87,7 +87,7 @@ const Store = {
 window.addEventListener('online', () => { Store.failed = false; Store.flush(); Store.note(); });
 window.addEventListener('offline', () => Store.note());
 /* ---------- state ---------- */
-const S = { view: 'athletes', team: 'all', teams: [], athletes: [], programs: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false }, pid: null, P: null, density: 'normal', mw: 0 };
+const S = { view: 'athletes', team: 'all', teams: [], athletes: [], programs: [], logs: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false }, pid: null, P: null, density: 'normal', mw: 0 };
 try { S.density = localStorage.getItem('pb_density') || 'normal'; } catch (e) { }
 try { S.team = localStorage.getItem('cd_team') || 'all'; S.min = localStorage.getItem('cd_min') === '1'; } catch (e) { }
 const teamById = id => S.teams.find(t => t.id === id);
@@ -143,6 +143,7 @@ function page() {
   if (S.view === 'editor') return editorView(el);
   if (S.view === 'print') return printView(el);
   if (S.view === 'settings') return settingsView(el);
+  if (S.view === 'history') return historyView(el);
     const n = NAV.find(x => x[0] === S.view) || [];
   el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
 }
@@ -177,6 +178,7 @@ function athleteForm(id) {
     `${id ? '<button class="btn danger" id="f-del">Elimina</button>' : ''}<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="f-ok">Salva</button>`,
     (el, m) => {
       el.querySelectorAll('[data-openprog]').forEach(b => b.onclick = () => { el.remove(); openEditor(b.dataset.openprog); });
+      el.querySelectorAll('[data-openhist]').forEach(b => b.onclick = () => { el.remove(); H.ath = b.dataset.openhist; H.ex = ''; S.view = 'history'; shell(); });
       const draw = () => {
         const box = $('#f-t', el); box.innerHTML = S.teams.map(t => `<button type="button" data-t="${t.id}" style="--tc:${t.color}" aria-pressed="${sel.has(t.id)}"><i></i>${esc(t.name)}</button>`).join('') || '<span class="rs">Nessuna ancora: scrivi un nome qui sotto.</span>';
         box.querySelectorAll('button').forEach(b => b.onclick = () => { const t = b.dataset.t; sel.has(t) ? sel.delete(t) : sel.add(t); b.setAttribute('aria-pressed', sel.has(t)); });

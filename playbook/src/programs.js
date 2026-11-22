@@ -169,7 +169,7 @@ function calMobile(P) {
   let h = `<div class="wkc">${Array.from({ length: W }, (_, k) => { const r = weekRef(P, k); return `<button class="fc${r.i === 0 && k ? ' ps' : ''}" data-x="mw" data-g="${k}" aria-pressed="${k === S.mw}"><b>Sett. ${k + 1}</b><small>${esc(r.ph.name)}</small></button>`; }).join('')}</div>`;
   h += `<div class="mwh"><div><b>Settimana ${g + 1}</b><span class="muted"> · ${esc(ph.name)}</span></div><button class="ibtn" data-x="wkmenu" data-g="${g}" aria-label="Azioni settimana">${ic('more')}</button></div>`;
   const wos = ph.workouts.slice().sort((a, b) => a.day - b.day);
-  h += wos.map(wo => `<div class="mday"><div class="dn">Giorno ${g * 7 + wo.day}</div>${cardHTML(ph, wo, i, g, 'expanded')}</div>`).join('') || '<div class="empty"><b>Nessun allenamento</b>Aggiungine uno qui sotto.</div>';
+  h += wos.map(wo => `<div class="mday"><div class="dn">Giorno ${g * 7 + wo.day}</div>${cardHTML(ph, wo, i, g, 'expanded')}<button class="btn sm logb" data-x="logwo" data-g="${g}" data-wid="${wo.id}">✓ Registra allenamento svolto</button></div>`).join('') || '<div class="empty"><b>Nessun allenamento</b>Aggiungine uno qui sotto.</div>';
   if (wos.length < 7) h += `<button class="btn wide" data-x="addwo-m" data-g="${g}">＋ Allenamento</button>`;
   return h;
 }
@@ -190,7 +190,7 @@ function cardHTML(ph, wo, i, g, den) {
     if (!body) body = '<div class="cempty">Nessun esercizio: tocca per scriverli</div>';
   }
   return `<div class="wcard" draggable="true" data-x="openwo" data-wid="${wo.id}" data-g="${g}" tabindex="0" role="button" aria-label="Apri ${esc(wo.title)}">
-    <div class="wt">${esc(wo.title || 'Allenamento')}${man ? '<i class="mdot" title="Contiene correzioni a mano"></i>' : ''}</div>${body}</div>`;
+    <div class="wt">${esc(wo.title || 'Allenamento')}${(() => { const n = S.pid ? logsOf(S.pid, g, wo.id).length : 0; return n ? `<span class="done" title="Registrato nello storico">✓${n > 1 ? ' ' + n : ''}</span>` : ''; })()}${man ? '<i class="mdot" title="Contiene correzioni a mano"></i>' : ''}</div>${body}</div>`;
 }
 function wireEditor(el) {
   const P = S.P, rerender = () => { changed(true); editorView(el); };
@@ -213,6 +213,7 @@ function wireEditor(el) {
       const { ph, pi, i } = weekRef(P, g);
       popMenu(b, [1, 2, 3, 4, 5, 6, 7].filter(d => !ph.workouts.some(w => w.day === d)).map(d => ({ label: 'Giorno ' + (g * 7 + d), fn: () => { const wo = newWorkout(d, 'Allenamento'); ph.workouts.push(wo); rerender(); openWorkout(pi, wo.id, i); } })));
     }
+    else if (x === 'logwo') { saveP.now(); logDialog({ P: S.P, pid: S.pid, g, wid: b.dataset.wid }); }
     else if (x === 'openwo') { const { pi, i } = weekRef(P, g); openWorkout(pi, b.dataset.wid, i); }
   };
   el.onkeydown = e => { if (e.key === 'Enter' && e.target.matches('.wcard')) e.target.click(); };
@@ -323,6 +324,8 @@ function assignDialog() {
 /* storico personale nella scheda atleta */
 function athProgramsHTML(id) {
   const L = S.programs.filter(p => p.athleteId === id).sort((a, b) => (b.start || '').localeCompare(a.start || '') || (b.createdAt || 0) - (a.createdAt || 0));
-  return `<div class="fld"><label>Programmi</label>${L.length ? `<div class="aplist">${L.map(p => { const st = progStatus(p); return `<button type="button" class="apr" data-openprog="${p.id}"><b>${esc(p.name)}</b><span>${p.start ? progDates(p) : 'Senza data'} · ${totalWeeks(p)} sett.${st ? ` · <span class="st st-${st[0]}">${st}</span>` : ''}</span></button>`; }).join('')}</div>`
+  const nl = S.logs.filter(l => l.athleteId === id), last = nl.reduce((m, l) => l.date > m ? l.date : m, '');
+  return `<div class="fld"><label>Storico</label><button type="button" class="apr" data-openhist="${id}"><b>${nl.length ? `${nl.length} ${nl.length === 1 ? 'allenamento registrato' : 'allenamenti registrati'}` : 'Nessun allenamento registrato'}</b><span>${last ? 'Ultimo: ' + fmtDate(last) + ' · ' : ''}Apri lo storico con carichi e andamento</span></button></div>
+  <div class="fld"><label>Programmi</label>${L.length ? `<div class="aplist">${L.map(p => { const st = progStatus(p); return `<button type="button" class="apr" data-openprog="${p.id}"><b>${esc(p.name)}</b><span>${p.start ? progDates(p) : 'Senza data'} · ${totalWeeks(p)} sett.${st ? ` · <span class="st st-${st[0]}">${st}</span>` : ''}</span></button>`; }).join('')}</div>`
     : '<div class="rs">Nessun programma. Apri un programma e premi "Assegna".</div>'}</div>`;
 }

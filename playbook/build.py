@@ -4,7 +4,7 @@ import os, shutil, hashlib
 here = os.path.dirname(os.path.abspath(__file__))
 src = os.path.join(here, 'src')
 out = os.path.join(os.path.dirname(here), 'docs')
-JS = ['util.js', 'progress.js', 'quick.js', 'program.js', 'images.js', 'cloud.js', 'app.js', 'programs.js', 'workout.js', 'print.js', 'demo.js']
+JS = ['util.js', 'progress.js', 'quick.js', 'program.js', 'images.js', 'cloud.js', 'app.js', 'programs.js', 'workout.js', 'print.js', 'history.js', 'demo.js']
 rd = lambda p: open(p, encoding='utf-8').read()
 t = rd(os.path.join(src, 'shell.html'))
 t = t.replace('/*__CSS__*/', rd(os.path.join(src, 'style.css')))

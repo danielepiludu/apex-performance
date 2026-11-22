@@ -159,6 +159,8 @@ function weWire(el) {
     else if (x === 'womenu') {
       const free = [1, 2, 3, 4, 5, 6, 7].filter(d => !ph.workouts.some(w => w.day === d));
       popMenu(b, [
+        { label: `Registra allenamento svolto (sett. ${phaseStart(S.P, WE.pi) + WE.i + 1})`, fn: () => { saveP.now(); logDialog({ P: S.P, pid: S.pid, g: phaseStart(S.P, WE.pi) + WE.i, wid: wo.id }); } },
+        { sep: true },
         ...free.map(d => ({ label: 'Duplica nel giorno ' + d, fn: () => { copyWorkout(ph, wo.id, d); changed(true); toast('Duplicato nel giorno ' + d); } })),
         S.P.phases.length > 1 && { sep: true },
         ...S.P.phases.filter(p => p !== ph).map(p => ({ label: 'Copia in ' + p.name + (p.workouts.some(w => w.day === wo.day) ? ' (giorno occupato)' : ''), disabled: p.workouts.some(w => w.day === wo.day), fn: () => { copyWorkout(ph, wo.id, wo.day, p); changed(true); toast('Copiato in ' + p.name); } })),

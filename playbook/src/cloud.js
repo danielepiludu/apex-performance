@@ -68,7 +68,7 @@ const isStandalone = () => window.matchMedia('(display-mode: standalone)').match
 const isIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
 /* ---------- impostazioni: account, app, backup, dati di esempio ---------- */
-const DEMO_IDS = { teams: ['t1', 't2'], athletes: ['d1', 'd2', 'd3', 'd4', 'd5'], programs: ['demo1', 'demo1-d1'] };
+const DEMO_IDS = { teams: ['t1', 't2'], athletes: ['d1', 'd2', 'd3', 'd4', 'd5'], programs: ['demo1', 'demo1-d1'], logs: ['demo-log-1', 'demo-log-2', 'demo-log-3', 'demo-log-4', 'demo-log-5', 'demo-log-6'] };
 function settingsView(el) {
   const [k, st] = Store.status(), u = Cloud.user;
   const demoLeft = Object.entries(DEMO_IDS).reduce((n, [c, ids]) => n + ids.filter(id => (Store.cols[c] || {})[id]).length, 0);
@@ -108,7 +108,7 @@ function settingsView(el) {
   };
   const imp = $('#s-imp', el); if (imp) imp.onchange = () => importBackup(imp);
 }
-const BACKUP_COLS = ['teams', 'athletes', 'programs', 'meta'];
+const BACKUP_COLS = ['teams', 'athletes', 'programs', 'logs', 'meta'];
 function exportBackup() {
   const data = { app: 'playbook', version: 1, exportedAt: new Date().toISOString(), cols: {} };
   BACKUP_COLS.forEach(c => { data.cols[c] = Store.cols[c] || {}; });

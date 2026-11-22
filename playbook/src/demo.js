@@ -102,7 +102,20 @@ async function seed() {
   // v4: logo di esempio per la squadra demo
   const t1 = (Store.cols.teams || {}).t1;
   if ((!meta || (meta.v || 1) < 4) && t1 && !t1.logo) await Store.set('teams', 't1', { ...t1, logo: DEMO_LOGO });
-  if (!meta || (meta.v || 1) < 4) await Store.set('meta', 'app', { seeded: true, v: 4 });
+  // v5: storico di esempio per Marco Bianchi (allenamenti passati con i carichi fatti)
+  if ((!meta || (meta.v || 1) < 5) && (Store.cols.athletes || {}).d1 && !Object.keys(Store.cols.logs || {}).length) {
+    const kg = [80, 82.5, 85, 87.5, 85, 90];
+    for (let k = 0; k < 6; k++) {
+      const date = addDays(todayISO(), -7 * (6 - k) + 1), p = k === 4 ? 87.5 : kg[k];
+      await Store.set('logs', 'demo-log-' + (k + 1), { athleteId: 'd1', date, title: 'Forza arto inferiore', rpe: String(7 + (k % 2)), note: k === 4 ? 'Stanco dopo la partita, carico ridotto' : '', createdAt: Date.now(),
+        entries: [
+          { code: 'A', name: 'Box Jump', plan: '3×4', planLoad: '', sets: '3', reps: '4', load: '', done: true, note: '' },
+          { code: 'B', name: 'Trap Bar Deadlift', plan: `4×6 · ${fmtN(p)} kg`, planLoad: fmtN(p), sets: '4', reps: '6', load: fmtN(kg[k]), done: true, note: '' },
+          { code: 'C1', name: 'DB RFE Split Squat', plan: '3×8 · 16 kg', planLoad: '16', sets: '3', reps: '8', load: String(16 + 2 * Math.floor(k / 2)), done: true, note: '' },
+          { code: 'C2', name: 'Cable Pallof Press', plan: '3×10', planLoad: '', sets: '3', reps: '10', load: '', done: k !== 2, note: '' }] });
+    }
+  }
+  if (!meta || (meta.v || 1) < 5) await Store.set('meta', 'app', { seeded: true, v: 5 });
 }
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
@@ -124,6 +137,7 @@ async function boot() {
   Store.sub('teams', d => { S.teams = d; S.loaded.teams = cached || !!Store.remote.teams || Store.mode === 'mem'; if (S.team !== 'all' && !teamById(S.team)) S.team = 'all'; if (S.view !== 'editor') shell(); });
   Store.sub('athletes', d => { S.athletes = d; S.loaded.athletes = cached || !!Store.remote.athletes || Store.mode === 'mem'; if (S.view === 'athletes') page(); });
   Store.sub('programs', d => { S.programs = d; if (S.view === 'programs') page(); });
+  Store.sub('logs', d => { S.logs = d; if (S.view === 'history' && !$('.ov')) page(); });
   await Store.connect();
   S.loaded.teams = S.loaded.athletes = true;
   if ((last.view === 'editor' || last.view === 'print') && (Store.cols.programs || {})[last.pid]) { S.programs = Object.entries(Store.cols.programs).map(([id, d]) => ({ id, ...clone(d) })); openEditor(last.pid); }
