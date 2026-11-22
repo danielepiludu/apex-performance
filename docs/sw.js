@@ -1,5 +1,5 @@
 /* Service worker: tiene l'app sul dispositivo, così si apre anche senza rete. */
-const VERSION = '33cd390219';
+const VERSION = '68593a5874';
 const CACHE = 'playbook-' + VERSION;
 const FILES = ['./', 'index.html', 'config.js', 'firebase.js', 'manifest.webmanifest', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
