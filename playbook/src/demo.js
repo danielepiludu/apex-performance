@@ -1,4 +1,5 @@
 /* ============ dati demo + avvio ============ */
+const DEMO_LOGO = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="56" fill="#E5262D"/><circle cx="60" cy="60" r="46" fill="none" stroke="#fff" stroke-width="3"/><path d="M30 40c10 8 10 32 0 40M90 40c-10 8-10 32 0 40" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="4 4"/><text x="60" y="70" font-family="Arial,Helvetica,sans-serif" font-size="30" font-weight="700" fill="#fff" text-anchor="middle">BD</text></svg>');
 const DEMO = {
   teams: { t1: { name: 'Baseball Demo', color: '#E5262D' }, t2: { name: 'Clienti privati', color: '#3B82F6' } },
   athletes: [
@@ -88,7 +89,10 @@ async function seed() {
     const C = duplicateProgram({ id: 'demo1', ...clone(progs.demo1) }); C.name = progs.demo1.name; C.athleteId = 'd1'; C.teamId = ''; C.start = nextMonday(); C.sourceId = 'demo1';
     await Store.set('programs', 'demo1-d1', C);
   }
-  if (!meta || (meta.v || 1) < 3) await Store.set('meta', 'app', { seeded: true, v: 3 });
+  // v4: logo di esempio per la squadra demo
+  const t1 = (Store.cols.teams || {}).t1;
+  if ((!meta || (meta.v || 1) < 4) && t1 && !t1.logo) await Store.set('teams', 't1', { ...t1, logo: DEMO_LOGO });
+  if (!meta || (meta.v || 1) < 4) await Store.set('meta', 'app', { seeded: true, v: 4 });
 }
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }

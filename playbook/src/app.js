@@ -134,12 +134,12 @@ function page() {
 function athletesView(el) {
   const list = S.athletes.filter(inTeam).filter(a => !S.q || (a.name + ' ' + (a.role || '')).toLowerCase().includes(S.q.toLowerCase())).sort(byName);
   const cur = S.teams.find(t => t.id === S.team);
-  el.innerHTML = `<div class="ph"><div><h1>${cur ? `<span class="gdot" style="background:${cur.color}"></span>${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
+  el.innerHTML = `<div class="ph"><div><h1>${cur ? `${cur.logo ? `<img class="glogo" src="${cur.logo}" alt="">` : `<span class="gdot" style="background:${cur.color}"></span>`}${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
     <input class="inp search" id="q" type="search" placeholder="Cerca per nome o ruolo" value="${esc(S.q)}" aria-label="Cerca">
     <button class="btn pri" data-a="newath">${ic('plus').replace('<svg', '<svg width="16" height="16" style="stroke:#fff;fill:none;stroke-width:2"')}Nuovo atleta</button></div>
     ${list.length ? `<div class="list">${list.map(a => {
       const ts = (a.teamIds || []).map(teamById).filter(Boolean), c = ts[0] ? ts[0].color : '#444';
-      return `<div class="row" data-ath="${a.id}" tabindex="0"><div class="av" style="--ac:${c}">${esc(initials(a.name))}</div>
+      return `<div class="row" data-ath="${a.id}" tabindex="0"><div class="av" style="--ac:${c}">${a.photo ? `<img src="${a.photo}" alt="">` : esc(initials(a.name))}</div>
       <div><div class="rn">${esc(a.name)}</div><div class="rs">${esc([a.role, age(a.birth)].filter(Boolean).join(' · ') || 'Nessun dettaglio')}${a.injuries ? ' · <span style="color:#ff8a8f">infortunio/note</span>' : ''}</div></div>
       <div class="chips">${ts.map(t => `<span class="chip" style="--tc:${t.color}"><i></i>${esc(t.name)}</span>`).join('')}</div></div>`;
     }).join('')}</div>` : `<div class="empty"><b>${S.q ? 'Nessun risultato' : 'Ancora nessun atleta'}</b>${S.q ? 'Prova con un altro nome.' : 'Aggiungi il primo atleta con il pulsante in alto: puoi creare la squadra o il cliente direttamente nella scheda.'}</div>`}`;
@@ -150,6 +150,7 @@ function athleteForm(id) {
   const sel = new Set(a.teamIds || []);
   const m = modal(id ? 'Modifica atleta' : 'Nuovo atleta', `
     ${id ? athProgramsHTML(id) : ''}
+    ${imgField('f-img', a.photo, 'Foto', 'photo')}
     <div class="fld"><label for="f-n">Nome e cognome</label><input id="f-n" class="inp" value="${esc(a.name)}" autocomplete="off"></div>
     <div class="two"><div class="fld"><label for="f-b">Data di nascita</label><input id="f-b" type="date" class="inp" value="${esc(a.birth)}"></div>
     <div class="fld"><label for="f-r">Ruolo / sport</label><input id="f-r" class="inp" value="${esc(a.role)}" autocomplete="off"></div></div>
@@ -172,9 +173,10 @@ function athleteForm(id) {
         sel.add(tid); inp.value = ''; draw();
       };
       $('#f-ga', el).onclick = addG; $('#f-g', el).onkeydown = e => { if (e.key === 'Enter') { e.preventDefault(); addG(); } };
+      const img = wireImg(el, 'f-img', a.photo, 'photo');
       $('#f-ok', el).onclick = async () => {
         const name = $('#f-n', el).value.trim(); if (!name) { $('#f-n', el).focus(); return; }
-        const d = { name, birth: $('#f-b', el).value, role: $('#f-r', el).value.trim(), injuries: $('#f-i', el).value.trim(), contact: $('#f-c', el).value.trim(), teamIds: [...sel], updatedAt: Date.now() };
+        const d = { name, birth: $('#f-b', el).value, role: $('#f-r', el).value.trim(), injuries: $('#f-i', el).value.trim(), contact: $('#f-c', el).value.trim(), teamIds: [...sel], photo: img.get(), updatedAt: Date.now() };
         await Store.set('athletes', id || uid(), { ...(id ? { createdAt: a.createdAt } : { createdAt: Date.now() }), ...d }); m.close(); toast('Salvato');
       };
       const del = $('#f-del', el);
@@ -186,12 +188,14 @@ function teamForm(id, after) {
   const t = id ? clone(S.teams.find(x => x.id === id)) : { name: '', color: COLORS[S.teams.length % COLORS.length] };
   let col = t.color;
   modal(id ? 'Modifica squadra o cliente' : 'Nuova squadra o cliente', `
+    ${imgField('t-img', t.logo, 'Logo', 'logo')}
     <div class="fld"><label for="t-n">Nome</label><input id="t-n" class="inp" value="${esc(t.name)}" autocomplete="off"></div>
     <div class="fld"><label>Colore</label><div class="sw" id="t-c">${COLORS.map(c => `<button type="button" style="--c:${c}" data-c="${c}" aria-pressed="${c === col}" aria-label="Colore ${c}"></button>`).join('')}</div></div>`,
     `${id ? '<button class="btn danger" id="t-del">Elimina</button>' : ''}<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="t-ok">Salva</button>`,
     (el, m) => {
       el.querySelectorAll('#t-c button').forEach(b => b.onclick = () => { col = b.dataset.c; el.querySelectorAll('#t-c button').forEach(x => x.setAttribute('aria-pressed', x === b)); });
-      $('#t-ok', el).onclick = async () => { const name = $('#t-n', el).value.trim(); if (!name) { $('#t-n', el).focus(); return; } const tid = id || uid(); await Store.set('teams', tid, { name, color: col, createdAt: t.createdAt || Date.now() }); m.close(); toast('Salvato'); after && after(tid); };
+      const img = wireImg(el, 't-img', t.logo, 'logo');
+      $('#t-ok', el).onclick = async () => { const name = $('#t-n', el).value.trim(); if (!name) { $('#t-n', el).focus(); return; } const tid = id || uid(); await Store.set('teams', tid, { name, color: col, logo: img.get(), createdAt: t.createdAt || Date.now() }); m.close(); toast('Salvato'); after && after(tid); };
       const del = $('#t-del', el);
       if (del) del.onclick = () => { del.textContent = 'Gli atleti restano. Confermi?'; del.onclick = async () => {
         for (const a of S.athletes.filter(x => (x.teamIds || []).includes(id))) await Store.set('athletes', a.id, { ...stripId(a), teamIds: a.teamIds.filter(x => x !== id) });

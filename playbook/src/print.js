@@ -1,11 +1,11 @@
 /* ============ Stampa per l'atleta ============
    Pagina separata dall'editor: foglio bianco A4, solo quello che serve all'atleta.
    Si stampa con la stampa del browser ("Salva come PDF"): funziona anche offline. */
-const PR = { pid: null, fmt: 'cols', pi: 0, wid: 'all', g: 'all', kg: 'filled', write: false, head: '' };
+const PR = { pid: null, fmt: 'cols', pi: 0, wid: 'all', g: 'all', kg: 'filled', write: false, head: '', style: 'color', pics: true, tid: null };
 function prDefaultHead(P) { if (P.athleteId) { const a = athById(P.athleteId); return a ? a.name : ''; } return ''; }
 function printView(el) {
   const P = S.P; if (!P) { S.view = 'programs'; return programsView(el); }
-  if (PR.pid !== S.pid) Object.assign(PR, { pid: S.pid, pi: 0, wid: 'all', g: 'all', head: prDefaultHead(P) });
+  if (PR.pid !== S.pid) Object.assign(PR, { pid: S.pid, pi: 0, wid: 'all', g: 'all', head: prDefaultHead(P), tid: null });
   if (PR.pi >= P.phases.length) PR.pi = 0;
   const ph = P.phases[PR.pi], W = totalWeeks(P);
   if (PR.wid !== 'all' && !ph.workouts.some(w => w.id === PR.wid)) PR.wid = 'all';
@@ -18,6 +18,10 @@ function printView(el) {
       ${P.phases.length > 1 ? `<div class="fld"><label for="pr-ph">Fase</label><select id="pr-ph" class="inp">${P.phases.map((p, i) => `<option value="${i}" ${i === PR.pi ? 'selected' : ''}>${esc(p.name)}</option>`).join('')}</select></div>` : ''}
       <div class="fld"><label for="pr-w">Allenamenti</label><select id="pr-w" class="inp"><option value="all">Tutti (${ph.workouts.length})</option>${ph.workouts.slice().sort((a, b) => a.day - b.day).map(w => `<option value="${w.id}" ${w.id === PR.wid ? 'selected' : ''}>Giorno ${w.day} · ${esc(w.title)}</option>`).join('')}</select></div>`
     : `<div class="fld"><label for="pr-g">Settimana</label><select id="pr-g" class="inp"><option value="all">Tutte (${W} fogli)</option>${Array.from({ length: W }, (_, g) => `<option value="${g}" ${String(g) === String(PR.g) ? 'selected' : ''}>Settimana ${g + 1}${P.start ? ' · ' + fmtDate(addDays(P.start, g * 7), true) : ''}</option>`).join('')}</select></div>`}
+    <div class="fld"><label>Stile</label>${seg('style', [['color', 'A colori'], ['bw', 'Bianco e nero']])}</div>
+    ${prTeamChoices(P).length > 1 ? `<div class="fld"><label for="pr-t">Squadra sul foglio</label><select id="pr-t" class="inp">${prTeamChoices(P).map(t => `<option value="${t ? t.id : ''}" ${(prTeamObj(P) || {}).id === (t || {}).id ? 'selected' : ''}>${t ? esc(t.name) : 'Nessuna'}</option>`).join('')}</select></div>` : ''}
+    <label class="cbx"><input type="checkbox" id="pr-pic" ${PR.pics ? 'checked' : ''}> Logo della squadra e foto dell'atleta</label>
+    ${prPicHint(P)}
     <div class="fld"><label>Kg</label>${seg('kg', [['filled', 'Scritti'], ['blank', 'Vuoti, li scrive l\'atleta']])}</div>
     <label class="cbx"><input type="checkbox" id="pr-wr" ${PR.write ? 'checked' : ''}> Spazio per scrivere i kg usati</label>
     <p class="hint">Premi "Stampa o salva PDF" e nella finestra di stampa scegli la stampante oppure "Salva come PDF".</p>`;
@@ -42,6 +46,8 @@ function printView(el) {
     else if (t.id === 'pr-w') PR.wid = t.value;
     else if (t.id === 'pr-g') PR.g = t.value;
     else if (t.id === 'pr-wr') PR.write = t.checked;
+    else if (t.id === 'pr-pic') PR.pics = t.checked;
+    else if (t.id === 'pr-t') PR.tid = t.value;
     else return;
     printView(el);
   };
@@ -63,12 +69,38 @@ const sxr = w => (w.sets || w.reps) ? `${w.sets || '–'} × ${w.reps || '–'}`
 const prKg = (r, w) => (PR.kg === 'blank' || r.ath) ? '' : (w.load || '');
 /* casella da compilare solo dove l'atleta deve scrivere i kg (non per gli esercizi a corpo libero) */
 const prBox = (r, w) => (PR.kg === 'blank' || r.ath) ? 'bx' : '';
+/* squadra mostrata sul foglio: quella del programma, o la prima dell'atleta */
+function prTeamChoices(P) {
+  if (P.athleteId) { const a = athById(P.athleteId); return [...((a && a.teamIds) || []).map(teamById).filter(Boolean), null]; }
+  return P.teamId && teamById(P.teamId) ? [teamById(P.teamId), null] : [];
+}
+function prTeamObj(P) {
+  if (PR.tid === '') return null;
+  if (PR.tid) return teamById(PR.tid) || null;
+  return prTeamChoices(P)[0] || null;
+}
+function prPicHint(P) {
+  const t = prTeamObj(P), a = P.athleteId ? athById(P.athleteId) : null, miss = [];
+  if (t && !t.logo) miss.push(`il logo di ${esc(t.name)}`);
+  if (a && !a.photo) miss.push(`la foto di ${esc(a.name)}`);
+  return miss.length && PR.pics ? `<p class="hint">Puoi aggiungere ${miss.join(' e ')} da "Atleti e squadre".</p>` : '';
+}
+/* colori del foglio: quelli della squadra */
+function prSheet(P, cls) {
+  const t = prTeamObj(P), ac = (t && t.color) || '#E5262D';
+  const st = PR.style === 'color' ? `--ac:${ac};--acd:${shade(ac, isLight(ac) ? 0.55 : 0.25)};--acl:${tint(ac, 0.12)};--act:${isLight(ac) ? '#111' : '#fff'}` : '';
+  return `<section class="sheet ${cls} ${PR.style}" style="${st}">`;
+}
+const bVars = bi => { const c = bColor(bi); return `--bc:${c};--bcd:${shade(c, isLight(c) ? 0.5 : 0.25)};--bcl:${tint(c, 0.16)}`; };
 function prHead(P, title, sub) {
-  return `<header class="sh-h"><div><div class="sh-n">${prName()}</div><div class="sh-p">${esc(P.name)}</div></div><div class="sh-r"><div class="sh-w">${esc(title)}</div><div class="sh-d">${esc(sub)}</div></div></header>`;
+  const t = prTeamObj(P), a = P.athleteId ? athById(P.athleteId) : null;
+  const logo = PR.pics && t && t.logo ? `<div class="sh-logo"><img src="${t.logo}" alt=""></div>` : '';
+  const photo = PR.pics && a && a.photo ? `<img class="sh-ph" src="${a.photo}" alt="">` : '';
+  return `<header class="sh-h">${logo}<div class="sh-id">${photo}<div><div class="sh-n">${prName()}</div><div class="sh-p">${esc(P.name)}${t ? ' · ' + esc(t.name) : ''}</div></div></div><div class="sh-r"><div class="sh-w">${esc(title)}</div><div class="sh-d">${esc(sub)}</div></div></header>`;
 }
 function blockRow(b, bi, span) {
   const k = blockKind(b);
-  return `<tr class="bk"><td colspan="${span}">Blocco ${LETTERS[bi % 26]}${k ? ' · ' + k : ''}${b.rest && b.rows.length > 1 ? ` · recupero tra i giri ${esc(b.rest)}` : ''}</td></tr>`;
+  return `<tr class="bk" style="${bVars(bi)}"><td colspan="${span}">Blocco ${LETTERS[bi % 26]}${k ? ' · ' + k : ''}${b.rest && b.rows.length > 1 ? ` · recupero tra i giri ${esc(b.rest)}` : ''}</td></tr>`;
 }
 function prPages(P) {
   if (PR.fmt === 'cols') {
@@ -84,7 +116,7 @@ function pageCols(P, ph, pi, wo) {
   const notes = wo.blocks.some(b => b.rows.some(r => (r.note || '').trim()));
   const span = 3 + W * per + (notes ? 1 : 0);
   const sub = `${ph.name} · ${W === 1 ? 'settimana ' + (s + 1) : `settimane ${s + 1}–${s + W}`}${P.start ? ' · dal ' + fmtDate(addDays(P.start, s * 7)) : ''}`;
-  let h = `<section class="sheet land">${prHead(P, `Giorno ${wo.day} · ${wo.title}`, sub)}<table class="sh"><thead><tr>
+  let h = `${prSheet(P, 'land')}${prHead(P, `Giorno ${wo.day} · ${wo.title}`, sub)}<table class="sh"><thead><tr>
     <th rowspan="2" class="cod"></th><th rowspan="2" class="l">Esercizio</th><th rowspan="2">Rec</th>
     ${Array.from({ length: W }, (_, k) => `<th colspan="${per}" class="wc">Sett. ${s + k + 1}${P.start ? ' · ' + fmtDate(addDays(P.start, (s + k) * 7), true) : ''}</th>`).join('')}
     ${notes ? '<th rowspan="2" class="l">Note</th>' : ''}</tr>
@@ -93,7 +125,7 @@ function pageCols(P, ph, pi, wo) {
     if (!b.rows.length) return;
     h += blockRow(b, bi, span);
     b.rows.forEach((r, ri) => {
-      h += `<tr><td class="cod">${rowCode(b, bi, ri)}</td><td class="l ex">${esc(r.name)}</td><td>${esc(r.w[0].rest || '')}</td>`;
+      h += `<tr style="${bVars(bi)}"><td class="cod">${rowCode(b, bi, ri)}</td><td class="l ex">${esc(r.name)}</td><td>${esc(r.w[0].rest || '')}</td>`;
       r.w.forEach(w => { const kg = prKg(r, w); h += `<td class="wc">${esc(sxr(w))}</td><td class="${kg ? '' : prBox(r, w)}">${esc(kg)}</td>${wr ? '<td class="bx"></td>' : ''}`; });
       h += `${notes ? `<td class="l nt">${esc(r.note || '')}</td>` : ''}</tr>`;
     });
@@ -105,7 +137,7 @@ function pageWeek(P, g) {
   const { ph, i } = weekRef(P, g), wos = ph.workouts.slice().sort((a, b) => a.day - b.day);
   let N = 0;
   if (PR.write) { N = 3; wos.forEach(wo => wo.blocks.forEach(b => b.rows.forEach(r => { const n = intOnly(r.w[i].sets); if (n && n > N) N = n; }))); N = Math.min(N, 6); }
-  let h = `<section class="sheet port">${prHead(P, `Settimana ${g + 1}`, `${ph.name}${P.start ? ' · dal ' + fmtDate(addDays(P.start, g * 7)) : ''}`)}`;
+  let h = `${prSheet(P, 'port')}${prHead(P, `Settimana ${g + 1}`, `${ph.name}${P.start ? ' · dal ' + fmtDate(addDays(P.start, g * 7)) : ''}`)}`;
   wos.forEach(wo => {
     const notes = wo.blocks.some(b => b.rows.some(r => (r.note || '').trim()));
     const span = 6 + N + (notes ? 1 : 0);
@@ -116,7 +148,7 @@ function pageWeek(P, g) {
       h += blockRow(b, bi, span);
       b.rows.forEach((r, ri) => {
         const w = r.w[i], kg = prKg(r, w), n = intOnly(w.sets) || N;
-        h += `<tr><td class="cod">${rowCode(b, bi, ri)}</td><td class="l ex">${esc(r.name)}</td><td>${esc(w.sets || '')}</td><td>${esc(w.reps || '')}</td><td class="${kg ? '' : prBox(r, w)}">${esc(kg)}</td><td>${esc(w.rest || '')}</td>
+        h += `<tr style="${bVars(bi)}"><td class="cod">${rowCode(b, bi, ri)}</td><td class="l ex">${esc(r.name)}</td><td>${esc(w.sets || '')}</td><td>${esc(w.reps || '')}</td><td class="${kg ? '' : prBox(r, w)}">${esc(kg)}</td><td>${esc(w.rest || '')}</td>
           ${Array.from({ length: N }, (_, k) => `<td class="${k < n ? 'bx' : 'off'}${k === 0 ? ' wc' : ''}"></td>`).join('')}${notes ? `<td class="l nt">${esc(r.note || '')}</td>` : ''}</tr>`;
       });
     });
