@@ -1,8 +1,3 @@
-const $ = (s, r = document) => r.querySelector(s);
-const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const uid = () => Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-4);
-const clone = o => JSON.parse(JSON.stringify(o));
-const sleep = ms => new Promise(r => setTimeout(r, ms));
 const COLORS = ['#E5262D', '#3B82F6', '#F5B02A', '#A855F7', '#22C55E', '#EC4899', '#14B8A6', '#F97316'];
 const ICON = {
   agent: '<path d="M12 3l1.8 4.6L18 9l-4.2 1.4L12 15l-1.8-4.6L6 9l4.2-1.4z"/><path d="M18 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z"/>',
@@ -12,19 +7,19 @@ const ICON = {
   wk: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4v2h6V4M9 11h6M9 15h6"/>',
   prog: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/>',
   menu: '<path d="M4 7h16M4 12h16M4 17h16"/>', side: '<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9 5v14"/>',
-  plus: '<path d="M12 5v14M5 12h14"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
+  plus: '<path d="M12 5v14M5 12h14"/>', hist: '<path d="M4 12a8 8 0 1 0 2.3-5.6L4 8.7"/><path d="M4 4v4.7h4.7M12 8v4l3 2"/>', more: '<circle cx="5" cy="12" r="1.3"/><circle cx="12" cy="12" r="1.3"/><circle cx="19" cy="12" r="1.3"/>', back: '<path d="M15 5l-7 7 7 7"/>', bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>'
 };
 const ic = k => `<svg viewBox="0 0 24 24">${ICON[k]}</svg>`;
 const NAV = [
   ['agent', 'Assistente', 'agent', 5], ['athletes', 'Atleti e squadre', 'ath'],
-  ['exercises', 'Esercizi', 'ex', 2], ['workouts', 'Allenamenti', 'wk', 2], ['programs', 'Programmi', 'prog', 2]
+  ['programs', 'Programmi', 'prog'], ['history', 'Storico', 'hist', 3]
 ];
 /* ---------- store: offline-first (local copy + queue), syncs to the shared db when online ---------- */
 const Store = {
   mode: 'init', hadDb: false, failed: false, db: null, cols: {}, subs: {}, pend: [], flushing: false, remote: {}, idb: null, listeners: [], watching: {},
   note() { this.listeners.forEach(f => f()); },
   status() {
-    if (this.mode === 'mem') return ['local', 'Solo su questo dispositivo'];
+    if (this.mode === 'mem') return ['ok', 'Salvato su questo dispositivo'];
     if (!this.db || this.failed) return ['off', this.pend.length ? `Offline · ${this.pend.length} modifiche da sincronizzare` : 'Offline · dati sul dispositivo'];
     if (this.pend.length) return ['pend', `Sincronizzo ${this.pend.length}…`];
     return ['ok', 'Salvato'];
@@ -43,8 +38,8 @@ const Store = {
     try { localStorage.setItem('pb_cache', JSON.stringify(v)); } catch (e) { }
   },
   async connect() {
-    try { if (window.claude && claude.use) { const db = await Promise.race([claude.use('db'), sleep(7000).then(() => null)]); if (db) { this.db = db; this.mode = 'db'; this.hadDb = true; this.failed = false; } } } catch (e) { }
-    if (!this.db) { this.mode = (this.hadDb || navigator.onLine === false) ? 'offline' : 'mem'; if (this.mode === 'offline') setTimeout(() => this.connect(), 30000); }
+    // Fase 6: qui si collega Firestore (sincronizzazione tra dispositivi). Per ora i dati restano sul dispositivo.
+    this.mode = 'mem';
     Object.keys(this.subs).forEach(c => this.watch(c)); this.flush(); this.note();
   },
   watch(col) {
@@ -77,35 +72,34 @@ const Store = {
 window.addEventListener('online', () => { if (Store.mode === 'offline') Store.connect(); else Store.flush(); });
 window.addEventListener('offline', () => Store.note());
 /* ---------- state ---------- */
-const S = { view: 'athletes', team: 'all', teams: [], athletes: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false } };
+const S = { view: 'athletes', team: 'all', teams: [], athletes: [], programs: [], q: '', min: false, open: false, loaded: { teams: false, athletes: false }, pid: null, P: null, density: 'normal', mw: 0 };
+try { S.density = localStorage.getItem('pb_density') || 'normal'; } catch (e) { }
 try { S.team = localStorage.getItem('cd_team') || 'all'; S.min = localStorage.getItem('cd_min') === '1'; } catch (e) { }
 const teamById = id => S.teams.find(t => t.id === id);
 const byName = (a, b) => (a.name || '').localeCompare(b.name || '', 'it');
 const inTeam = a => S.team === 'all' || (a.teamIds || []).includes(S.team);
-function toast(m) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2000); }
-function age(d) { if (!d) return ''; const b = new Date(d); if (isNaN(b)) return ''; const n = new Date(); let a = n.getFullYear() - b.getFullYear(); if (n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--; return a + ' anni'; }
-function initials(n) { return (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase(); }
 /* ---------- modal ---------- */
-function modal(title, body, footer, onMount) {
+function modal(title, body, footer, onMount, opts = {}) {
   const bg = document.createElement('div'); bg.className = 'ov';
-  bg.innerHTML = `<div class="modal" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3>${body}<div class="mf">${footer}</div></div>`;
+  bg.innerHTML = `<div class="modal${opts.cls ? ' ' + opts.cls : ''}" role="dialog" aria-modal="true" aria-label="${esc(title)}"><h3>${esc(title)}</h3>${body}<div class="mf">${footer}</div></div>`;
   document.body.appendChild(bg);
-  const m = { el: bg, close() { bg.remove(); if (S.loaded.teams) shell(); } };
+  const m = { el: bg, close() { bg.remove(); if (opts.onClose) opts.onClose(); else if (S.loaded.teams) shell(); } };
   bg.addEventListener('mousedown', e => { if (e.target === bg) m.close(); });
   bg.querySelectorAll('[data-close]').forEach(b => b.onclick = () => m.close());
   onMount && onMount(bg, m);
-  const f = bg.querySelector('input,textarea'); if (f) f.focus({ preventScroll: true });
+  if (!opts.noFocus) { const f = bg.querySelector('input,textarea'); if (f) f.focus({ preventScroll: true }); }
   return m;
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.querySelector('.ov:last-of-type'); if (o) o.remove(); } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = $$('.ov').pop(); if (o) { const c = o.querySelector('[data-close]'); c ? c.click() : o.remove(); } } });
 /* ---------- render shell ---------- */
 function shell() {
+  try { localStorage.setItem('pb_last', JSON.stringify({ view: S.view, pid: S.pid })); } catch (e) { }
   const cur = S.teams.find(t => t.id === S.team);
   $('#app').innerHTML = `
   ${S.open ? '<div class="scrim" data-a="menu"></div>' : ''}
   <aside class="side ${S.min ? 'min' : ''} ${S.open ? 'open' : ''}">
     <div class="logo"><i>${ic('bolt')}</i><span>Playbook</span></div>
-    ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
+    ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && S.view === 'editor') ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
     <div class="sfoot"><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
   </aside>
@@ -117,7 +111,7 @@ function shell() {
       <div class="grow"></div>
       <span class="stat" id="mode"></span>
     </header>
-    <main class="content"><div class="page" id="page"></div></main>
+    <main class="content${S.view === 'editor' ? ' wide' : ''}"><div class="page" id="page"></div></main>
   </div>`;
   showStat(); page();
 }
@@ -130,6 +124,8 @@ function page() {
   const el = $('#page'); if (!el) return;
   if (!S.loaded.teams || !S.loaded.athletes) { el.innerHTML = '<div class="soonp">Caricamento…</div>'; return; }
   if (S.view === 'athletes') return athletesView(el);
+  if (S.view === 'programs') return programsView(el);
+  if (S.view === 'editor') return editorView(el);
     const n = NAV.find(x => x[0] === S.view) || [];
   el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
 }
@@ -200,12 +196,11 @@ function teamForm(id, after) {
       }; };
     });
 }
-const stripId = o => { const c = { ...o }; delete c.id; return c; };
 function setTeam(id) { S.team = id; try { localStorage.setItem('cd_team', id); } catch (e) { } shell(); }
 /* ---------- events ---------- */
 document.addEventListener('click', e => {
   const t = e.target;
-  const nv = t.closest('[data-v]'); if (nv) { S.view = nv.dataset.v; S.open = false; shell(); return; }
+  const nv = t.closest('[data-v]'); if (nv) { if (S.view === 'editor') closeEditor(); S.view = nv.dataset.v; S.open = false; shell(); return; }
   const a = t.closest('[data-a]');
   if (a) {
     const k = a.dataset.a;
@@ -221,37 +216,3 @@ document.addEventListener('change', e => {
   if (e.target.value === '__new') { teamForm(null, id => setTeam(id)); e.target.value = S.team; return; }
   setTeam(e.target.value);
 });
-/* ---------- boot + demo data ---------- */
-const DEMO = {
-  teams: { t1: { name: 'Baseball Demo', color: '#E5262D', kind: 'team' }, t2: { name: 'Clienti privati', color: '#3B82F6', kind: 'client' } },
-  athletes: [
-    ['Marco Bianchi', '2003-04-12', 'Lanciatore', 'Fastidio lieve alla spalla dx, gestire il volume di lancio.', ['t1']],
-    ['Luca Ferrari', '2002-09-30', 'Ricevitore', '', ['t1']],
-    ['Davide Romano', '2004-01-18', 'Esterno', 'Rientro da distorsione alla caviglia.', ['t1']],
-    ['Andrea Conti', '2001-07-05', 'Interbase', '', ['t1', 't2']],
-    ['Giulia Marino', '1994-11-22', 'Cliente - forza generale', '', ['t2']]
-  ]
-};
-async function seed() {
-  if (Store.cols.meta && Store.cols.meta.app) return;
-  if (S.teams.length || S.athletes.length) { await Store.set('meta', 'app', { seeded: true }); return; }
-  for (const [id, t] of Object.entries(DEMO.teams)) await Store.set('teams', id, { name: t.name, color: t.color, createdAt: Date.now() });
-  for (const [i, a] of DEMO.athletes.entries()) await Store.set('athletes', 'd' + (i + 1), { name: a[0], birth: a[1], role: a[2], injuries: a[3], contact: '', teamIds: a[4], createdAt: Date.now() });
-  await Store.set('meta', 'app', { seeded: true });
-}
-async function boot() {
-  shell();
-  const cached = await Store.open();
-  let seeded = false;
-  // seed only when the shared db has answered (or in a throw-away demo), never from an empty offline cache
-  const maybeSeed = () => { if (seeded) return; if (Store.mode === 'mem' || (Store.remote.teams && Store.remote.athletes && Store.remote.meta)) { seeded = true; seed(); } };
-  Store.listeners.push(maybeSeed);
-  Store.sub('meta', () => { });
-  Store.sub('teams', d => { S.teams = d; S.loaded.teams = cached || !!Store.remote.teams || Store.mode === 'mem'; if (S.team !== 'all' && !teamById(S.team)) S.team = 'all'; shell(); });
-  Store.sub('athletes', d => { S.athletes = d; S.loaded.athletes = cached || !!Store.remote.athletes || Store.mode === 'mem'; page(); });
-  setTimeout(() => { if (!S.loaded.teams || !S.loaded.athletes) { S.loaded.teams = S.loaded.athletes = true; shell(); } }, 6500);
-  await Store.connect();
-  if (Store.mode === 'mem') { S.loaded.teams = S.loaded.athletes = true; shell(); }
-  maybeSeed();
-}
-boot();
