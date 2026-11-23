@@ -415,6 +415,14 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .sh.fit td.ex{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .sh .kgc{min-width:17mm}
 .sh td.kgu{min-width:15mm;height:10mm}
+/* atleti divisi per gruppo */
+.agrp{margin-bottom:16px}
+.agh{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-left:3px solid var(--tc);padding:8px 12px;margin-bottom:8px;text-align:left;border-radius:0 8px 8px 0}
+.agh:hover{background:var(--panel)}
+.agh b{font-size:16px}.agh .glogo,.agh .gdot{margin-right:0}
+.agh .chev{color:var(--muted);font-size:14px}
+.agrp .list{border-left:3px solid var(--tc)}
+.agempty{padding:4px 15px 8px}
 
 </style>
 </head>
@@ -1069,13 +1077,29 @@ function athletesView(el) {
   el.innerHTML = `<div class="ph"><div><h1>${cur ? `${cur.logo ? `<img class="glogo" src="${cur.logo}" alt="">` : `<span class="gdot" style="background:${cur.color}"></span>`}${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
     <input class="inp search" id="q" type="search" placeholder="Cerca per nome o ruolo" value="${esc(S.q)}" aria-label="Cerca">
     <button class="btn pri" data-a="newath">${ic('plus').replace('<svg', '<svg width="16" height="16" style="stroke:#fff;fill:none;stroke-width:2"')}Nuovo atleta</button></div>
-    ${list.length ? `<div class="list">${list.map(a => {
-      const ts = (a.teamIds || []).map(teamById).filter(Boolean), c = ts[0] ? ts[0].color : '#444';
-      return `<div class="row" data-ath="${a.id}" tabindex="0"><div class="av" style="--ac:${c}">${a.photo ? `<img src="${a.photo}" alt="">` : esc(initials(a.name))}</div>
-      <div><div class="rn">${esc(a.name)}</div><div class="rs">${esc([a.role, age(a.birth)].filter(Boolean).join(' · ') || 'Nessun dettaglio')}${a.injuries ? ' · <span style="color:#ff8a8f">infortunio/note</span>' : ''}</div></div>
-      <div class="chips">${ts.map(t => `<span class="chip" style="--tc:${t.color}"><i></i>${esc(t.name)}</span>`).join('')}</div></div>`;
-    }).join('')}</div>` : `<div class="empty"><b>${S.q ? 'Nessun risultato' : 'Ancora nessun atleta'}</b>${S.q ? 'Prova con un altro nome.' : 'Aggiungi il primo atleta con il pulsante in alto: puoi creare la squadra o il cliente direttamente nella scheda.'}</div>`}`;
+    ${list.length ? athGroupsHTML(list, cur) : `<div class="empty"><b>${S.q ? 'Nessun risultato' : 'Ancora nessun atleta'}</b>${S.q ? 'Prova con un altro nome.' : 'Aggiungi il primo atleta con il pulsante in alto: puoi creare la squadra o il cliente direttamente nella scheda.'}</div>`}`;
+  el.onclick = e => { const g = e.target.closest('[data-grp]'); if (!g) return; const k = g.dataset.grp; S.coll.has(k) ? S.coll.delete(k) : S.coll.add(k); try { localStorage.setItem('pb_coll', JSON.stringify([...S.coll])); } catch (e2) { } athletesView(el); };
   const q = $('#q'); if (q) q.oninput = () => { S.q = q.value; const p = q.selectionStart; athletesView(el); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
+}
+/* atleti divisi per squadra o cliente, in ordine alfabetico; chi è in più gruppi compare in ognuno */
+S.coll = new Set(); try { S.coll = new Set(JSON.parse(localStorage.getItem('pb_coll') || '[]')); } catch (e) { }
+function athRowHTML(a, skipTeam) {
+  const ts = (a.teamIds || []).map(teamById).filter(Boolean), c = (teamById(skipTeam) || ts[0] || {}).color || '#444', other = ts.filter(t => t.id !== skipTeam);
+  return `<div class="row" data-ath="${a.id}" tabindex="0"><div class="av" style="--ac:${c}">${a.photo ? `<img src="${a.photo}" alt="">` : esc(initials(a.name))}</div>
+      <div><div class="rn">${esc(a.name)}</div><div class="rs">${esc([a.role, age(a.birth)].filter(Boolean).join(' · ') || 'Nessun dettaglio')}${a.injuries ? ' · <span style="color:#ff8a8f">infortunio/note</span>' : ''}</div></div>
+      <div class="chips">${other.map(t => `<span class="chip" style="--tc:${t.color}" title="È anche in ${esc(t.name)}"><i></i>anche ${esc(t.name)}</span>`).join('')}</div></div>`;
+}
+function athGroupsHTML(list, cur) {
+  if (cur) return `<div class="list">${list.map(a => athRowHTML(a, cur.id)).join('')}</div>`;
+  const groups = S.teams.slice().sort(byName).map(t => ({ id: t.id, t, items: list.filter(a => (a.teamIds || []).includes(t.id)) }));
+  groups.push({ id: '_none', t: null, items: list.filter(a => !(a.teamIds || []).some(teamById)) });
+  return groups.filter(g => g.items.length || (g.t && !S.q)).map(g => {
+    const open = !S.coll.has(g.id) || S.q, n = g.items.length;
+    const mark = g.t ? (g.t.logo ? `<img class="glogo" src="${g.t.logo}" alt="">` : `<span class="gdot" style="background:${g.t.color}"></span>`) : '<span class="gdot" style="background:#555"></span>';
+    return `<section class="agrp" style="--tc:${g.t ? g.t.color : '#555'}">
+      <button class="agh" data-grp="${g.id}" aria-expanded="${!!open}">${mark}<b>${g.t ? esc(g.t.name) : 'Senza squadra o cliente'}</b><span class="muted">${n} ${n === 1 ? 'atleta' : 'atleti'}</span><span class="grow"></span><span class="chev">${open ? '▾' : '▸'}</span></button>
+      ${open ? (n ? `<div class="list">${g.items.map(a => athRowHTML(a, g.t && g.t.id)).join('')}</div>` : '<div class="rs agempty">Nessun atleta in questo gruppo.</div>') : ''}</section>`;
+  }).join('');
 }
 function athleteForm(id) {
   const a = id ? clone(S.athletes.find(x => x.id === id)) : { name: '', birth: '', role: '', injuries: '', contact: '', teamIds: S.team !== 'all' ? [S.team] : [] };

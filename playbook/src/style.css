@@ -399,3 +399,11 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .sh.fit td.ex{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .sh .kgc{min-width:17mm}
 .sh td.kgu{min-width:15mm;height:10mm}
+/* atleti divisi per gruppo */
+.agrp{margin-bottom:16px}
+.agh{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;border-left:3px solid var(--tc);padding:8px 12px;margin-bottom:8px;text-align:left;border-radius:0 8px 8px 0}
+.agh:hover{background:var(--panel)}
+.agh b{font-size:16px}.agh .glogo,.agh .gdot{margin-right:0}
+.agh .chev{color:var(--muted);font-size:14px}
+.agrp .list{border-left:3px solid var(--tc)}
+.agempty{padding:4px 15px 8px}
