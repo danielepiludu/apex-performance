@@ -120,13 +120,15 @@ async function seed() {
 async function boot() {
   let last = {}; try { last = JSON.parse(localStorage.getItem('pb_last') || '{}'); } catch (e) { }
   let key = 'local';
-  if (cloudInit() && !localOnly()) {
+  // con Firebase configurato si entra solo con un account autorizzato (niente uso senza account)
+  if (cloudInit()) {
     $('#app').innerHTML = '<div class="login"><div class="logo big"><img class="lmark" src="' + LOGO + '" alt=""><span>' + APP_NAME + '</span></div></div>';
     await cloudRedirectResult();
     const u = await cloudFirstUser(6000);
     if (!u) { loginScreen(); return; }
+    if (await cloudCheckAccess(u.uid) === 'denied') { blockedScreen(u); return; }
     key = u.uid;
-  } else if (Cloud.on && localOnly()) { cloudFirstUser(3000); }
+  }
   shell();
   const cached = await Store.open(key);
   let seeded = false;

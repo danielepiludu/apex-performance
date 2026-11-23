@@ -52,11 +52,27 @@ function loginScreen() {
     <p class="muted">Programmi di allenamento. Accedi per avere gli stessi dati su PC, tablet e telefono.</p>
     <button class="btn gbtn" id="lg-go"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Accedi con Google</button>
     <p class="lerr" id="lg-msg" role="alert"></p>
-    <button class="lnk" id="lg-local">Usa senza account (dati solo su questo dispositivo)</button></div></div>`;
+    <p class="rs small">Accesso riservato agli account autorizzati.</p></div></div>`;
   $('#lg-go').onclick = () => googleLogin($('#lg-go'), $('#lg-msg'));
-  $('#lg-local').onclick = () => { setLocalOnly(true); location.reload(); };
 }
 /* dopo un accesso con reindirizzamento (telefono) */
+/* l'account è tra quelli autorizzati? Lo decidono le regole di Firestore (elenco email nella console Firebase).
+   'denied' = il server ha rifiutato; 'unknown' = senza rete o server lento: si entra con la copia sul dispositivo */
+async function cloudCheckAccess(uid) {
+  if (navigator.onLine === false) return 'unknown';
+  try {
+    await Promise.race([FB.getDocFromServer(FB.doc(Cloud.fs, 'users', uid, 'meta', 'app')), sleep(8000).then(() => { throw { code: 'timeout' }; })]);
+    return 'ok';
+  } catch (e) { return e && e.code === 'permission-denied' ? 'denied' : 'unknown'; }
+}
+function blockedScreen(u) {
+  $('#app').innerHTML = `<div class="login"><div class="lcard">
+    <div class="logo big"><img class="lmark" src="${LOGO}" alt=""><span>${APP_NAME}</span></div>
+    <h3 style="margin:4px 0 0">Accesso non autorizzato</h3>
+    <p class="muted">L'account <b>${esc(u.email || '')}</b> non ha accesso a questa app. Se è il tuo, chiedi all'amministratore di aggiungerlo.</p>
+    <button class="btn" id="bl-out">Esci e cambia account</button></div></div>`;
+  $('#bl-out').onclick = async () => { try { await FB.signOut(Cloud.auth); } catch (e) { } location.reload(); };
+}
 async function cloudRedirectResult() { try { await FB.getRedirectResult(Cloud.auth); } catch (e) { } }
 
 /* ---------- app installabile + aggiornamenti ---------- */
