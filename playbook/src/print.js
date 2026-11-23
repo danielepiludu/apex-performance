@@ -29,7 +29,7 @@ function printView(el) {
   el.innerHTML = `<div class="prbar"><button class="btn sm ghost" data-pr="back">${ic('back')}<span>Torna al programma</span></button>
       <div class="prt"><b>Stampa per l'atleta</b><span class="muted small">${esc(P.name)} · ${pages.length} ${pages.length === 1 ? 'foglio' : 'fogli'} A4</span></div><div class="grow"></div>
       <button class="btn pri" data-pr="print">Stampa o salva PDF</button></div>
-    <div class="prwrap"><aside class="propts">${opts}</aside><div class="prprev" id="prprev"><div class="pages" id="pages">${pages.join('') || '<div class="empty"><b>Niente da stampare</b>Questa scelta non contiene allenamenti.</div>'}</div></div></div>`;
+    <div class="prwrap"><aside class="propts">${opts}</aside><div class="prprev" id="prprev"><div class="pages" id="pages"><div class="pw-print">Powered by ${esc(POWERED)}</div>${pages.join('') || '<div class="empty"><b>Niente da stampare</b>Questa scelta non contiene allenamenti.</div>'}</div></div></div>`;
   let st = $('#pgsize'); if (!st) { st = document.createElement('style'); st.id = 'pgsize'; document.head.appendChild(st); }
   st.textContent = `@page{size:A4 ${PR.fmt === 'cols' ? 'landscape' : 'portrait'};margin:9mm}`;
   prFit();
@@ -130,7 +130,7 @@ function pageCols(P, ph, pi, wo) {
       h += `${notes ? `<td class="l nt">${esc(r.note || '')}</td>` : ''}</tr>`;
     });
   });
-  return h + '</tbody></table></section>';
+  return h + `</tbody></table><footer class="sh-pw">Powered by ${esc(POWERED)}</footer></section>`;
 }
 /* foglio di una settimana: tutti gli allenamenti */
 function pageWeek(P, g) {
@@ -154,5 +154,5 @@ function pageWeek(P, g) {
     });
     h += '</tbody></table></div>';
   });
-  return h + '</section>';
+  return h + `<footer class="sh-pw">Powered by ${esc(POWERED)}</footer></section>`;
 }

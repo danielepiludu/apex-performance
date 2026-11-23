@@ -391,6 +391,13 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .lmark{height:26px;width:auto;flex:none;display:block}
 .logo.big .lmark{height:52px}
 .side.min .logo{padding-left:4px;padding-right:0}
+/* firma */
+.pwr{font-size:11.5px;color:var(--muted);padding:8px 10px 4px;letter-spacing:.02em}.pwr b{color:#cfcfd5;font-weight:600}
+.side.min .pwr{display:none}
+.login{grid-template-rows:1fr auto;gap:16px}.login>.lcard{align-self:end}.login>.pwr{align-self:start;text-align:center}
+.sh-pw{margin-top:8px;text-align:right;font-size:8.5px;color:#999;letter-spacing:.04em}
+.pw-print{display:none}
+@media print{.sh-pw{display:none}.pw-print{display:block;position:fixed;bottom:0;right:0;font-size:8.5px;color:#999;letter-spacing:.04em;font-family:Arial,Helvetica,sans-serif}}
 
 </style>
 </head>
@@ -401,6 +408,8 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 <script>
 /* ============ utilità comuni ============ */
 const APP_NAME = 'Apex Performance';
+const POWERED = 'Daniele Piludu';
+const poweredHTML = () => `<div class="pwr">Powered by <b>${POWERED}</b></div>`;
 const LOGO = 'data:image/png;base64,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'; // marchio Apex, inserito dalla build (icons/logo-mark.png)
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -791,7 +800,7 @@ function loginScreen() {
     <p class="muted">Programmi di allenamento. Accedi per avere gli stessi dati su PC, tablet e telefono.</p>
     <button class="btn gbtn" id="lg-go"><svg viewBox="0 0 48 48" width="18" height="18"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.7 6c4.5-4.2 6.9-10.3 6.9-17.7z"/><path fill="#FBBC05" d="M10.6 28.6A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.6l-7.9-6.1A24 24 0 0 0 0 24c0 3.9.9 7.5 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.7-6c-2.2 1.5-5 2.3-8.2 2.3-6.2 0-11.5-4.2-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg>Accedi con Google</button>
     <p class="lerr" id="lg-msg" role="alert"></p>
-    <p class="rs small">Accesso riservato agli account autorizzati.</p></div></div>`;
+    <p class="rs small">Accesso riservato agli account autorizzati.</p></div>${poweredHTML()}</div>`;
   $('#lg-go').onclick = () => googleLogin($('#lg-go'), $('#lg-msg'));
 }
 /* dopo un accesso con reindirizzamento (telefono) */
@@ -809,7 +818,7 @@ function blockedScreen(u) {
     <div class="logo big"><img class="lmark" src="${LOGO}" alt=""><span>${APP_NAME}</span></div>
     <h3 style="margin:4px 0 0">Accesso non autorizzato</h3>
     <p class="muted">L'account <b>${esc(u.email || '')}</b> non ha accesso a questa app. Se è il tuo, chiedi all'amministratore di aggiungerlo.</p>
-    <button class="btn" id="bl-out">Esci e cambia account</button></div></div>`;
+    <button class="btn" id="bl-out">Esci e cambia account</button></div>${poweredHTML()}</div>`;
   $('#bl-out').onclick = async () => { try { await FB.signOut(Cloud.auth); } catch (e) { } location.reload(); };
 }
 async function cloudRedirectResult() { try { await FB.getRedirectResult(Cloud.auth); } catch (e) { } }
@@ -1004,6 +1013,7 @@ function shell() {
     <div class="logo"><img class="lmark" src="${LOGO}" alt=""><span>${APP_NAME}</span></div>
     ${NAV.map(([k, l, i, ph]) => `<button class="nv" data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span>${ph ? `<em class="soon" style="font-style:normal"><span>Fase ${ph}</span></em>` : ''}</button>`).join('')}
     <div class="spacer"></div>
+    ${poweredHTML()}
     <div class="sfoot"><button class="nv" data-v="settings" ${S.view === 'settings' ? 'aria-current="page"' : ''}>${ic('gear')}<span>Impostazioni</span></button><button class="nv" data-a="min" aria-label="Comprimi la barra laterale">${ic('side')}<span>Comprimi</span></button></div>
   </aside>
   <div class="main">
@@ -1731,7 +1741,7 @@ function printView(el) {
   el.innerHTML = `<div class="prbar"><button class="btn sm ghost" data-pr="back">${ic('back')}<span>Torna al programma</span></button>
       <div class="prt"><b>Stampa per l'atleta</b><span class="muted small">${esc(P.name)} · ${pages.length} ${pages.length === 1 ? 'foglio' : 'fogli'} A4</span></div><div class="grow"></div>
       <button class="btn pri" data-pr="print">Stampa o salva PDF</button></div>
-    <div class="prwrap"><aside class="propts">${opts}</aside><div class="prprev" id="prprev"><div class="pages" id="pages">${pages.join('') || '<div class="empty"><b>Niente da stampare</b>Questa scelta non contiene allenamenti.</div>'}</div></div></div>`;
+    <div class="prwrap"><aside class="propts">${opts}</aside><div class="prprev" id="prprev"><div class="pages" id="pages"><div class="pw-print">Powered by ${esc(POWERED)}</div>${pages.join('') || '<div class="empty"><b>Niente da stampare</b>Questa scelta non contiene allenamenti.</div>'}</div></div></div>`;
   let st = $('#pgsize'); if (!st) { st = document.createElement('style'); st.id = 'pgsize'; document.head.appendChild(st); }
   st.textContent = `@page{size:A4 ${PR.fmt === 'cols' ? 'landscape' : 'portrait'};margin:9mm}`;
   prFit();
@@ -1832,7 +1842,7 @@ function pageCols(P, ph, pi, wo) {
       h += `${notes ? `<td class="l nt">${esc(r.note || '')}</td>` : ''}</tr>`;
     });
   });
-  return h + '</tbody></table></section>';
+  return h + `</tbody></table><footer class="sh-pw">Powered by ${esc(POWERED)}</footer></section>`;
 }
 /* foglio di una settimana: tutti gli allenamenti */
 function pageWeek(P, g) {
@@ -1856,7 +1866,7 @@ function pageWeek(P, g) {
     });
     h += '</tbody></table></div>';
   });
-  return h + '</section>';
+  return h + `<footer class="sh-pw">Powered by ${esc(POWERED)}</footer></section>`;
 }
 
 /* ============ Fase 3: storico degli allenamenti svolti ============

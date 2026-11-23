@@ -375,3 +375,10 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .lmark{height:26px;width:auto;flex:none;display:block}
 .logo.big .lmark{height:52px}
 .side.min .logo{padding-left:4px;padding-right:0}
+/* firma */
+.pwr{font-size:11.5px;color:var(--muted);padding:8px 10px 4px;letter-spacing:.02em}.pwr b{color:#cfcfd5;font-weight:600}
+.side.min .pwr{display:none}
+.login{grid-template-rows:1fr auto;gap:16px}.login>.lcard{align-self:end}.login>.pwr{align-self:start;text-align:center}
+.sh-pw{margin-top:8px;text-align:right;font-size:8.5px;color:#999;letter-spacing:.04em}
+.pw-print{display:none}
+@media print{.sh-pw{display:none}.pw-print{display:block;position:fixed;bottom:0;right:0;font-size:8.5px;color:#999;letter-spacing:.04em;font-family:Arial,Helvetica,sans-serif}}

@@ -1,5 +1,7 @@
 /* ============ utilità comuni ============ */
 const APP_NAME = 'Apex Performance';
+const POWERED = 'Daniele Piludu';
+const poweredHTML = () => `<div class="pwr">Powered by <b>${POWERED}</b></div>`;
 const LOGO = '__LOGO_DATA__'; // marchio Apex, inserito dalla build (icons/logo-mark.png)
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
