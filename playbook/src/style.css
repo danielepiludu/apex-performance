@@ -407,3 +407,5 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .agh .chev{color:var(--muted);font-size:14px}
 .agrp .list{border-left:3px solid var(--tc)}
 .agempty{padding:4px 15px 8px}
+/* scheda atleta / cliente */
+.kseg{margin-bottom:14px}

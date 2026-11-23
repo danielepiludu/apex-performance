@@ -154,7 +154,7 @@ function athletesView(el) {
   const cur = S.teams.find(t => t.id === S.team);
   el.innerHTML = `<div class="ph"><div><h1>${cur ? `${cur.logo ? `<img class="glogo" src="${cur.logo}" alt="">` : `<span class="gdot" style="background:${cur.color}"></span>`}${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
     <input class="inp search" id="q" type="search" placeholder="Cerca per nome o ruolo" value="${esc(S.q)}" aria-label="Cerca">
-    <button class="btn pri" data-a="newath">${ic('plus').replace('<svg', '<svg width="16" height="16" style="stroke:#fff;fill:none;stroke-width:2"')}Nuovo atleta</button></div>
+    <button class="btn pri" data-a="newath">${ic('plus').replace('<svg', '<svg width="16" height="16" style="stroke:#fff;fill:none;stroke-width:2"')}Aggiungi</button></div>
     ${list.length ? athGroupsHTML(list, cur) : `<div class="empty"><b>${S.q ? 'Nessun risultato' : 'Ancora nessun atleta'}</b>${S.q ? 'Prova con un altro nome.' : 'Aggiungi il primo atleta con il pulsante in alto: puoi creare la squadra o il cliente direttamente nella scheda.'}</div>`}`;
   el.onclick = e => { const g = e.target.closest('[data-grp]'); if (!g) return; const k = g.dataset.grp; S.coll.has(k) ? S.coll.delete(k) : S.coll.add(k); try { localStorage.setItem('pb_coll', JSON.stringify([...S.coll])); } catch (e2) { } athletesView(el); };
   const q = $('#q'); if (q) q.oninput = () => { S.q = q.value; const p = q.selectionStart; athletesView(el); const n = $('#q'); n.focus(); n.setSelectionRange(p, p); };
@@ -164,7 +164,7 @@ S.coll = new Set(); try { S.coll = new Set(JSON.parse(localStorage.getItem('pb_c
 function athRowHTML(a, skipTeam) {
   const ts = (a.teamIds || []).map(teamById).filter(Boolean), c = (teamById(skipTeam) || ts[0] || {}).color || '#444', other = ts.filter(t => t.id !== skipTeam);
   return `<div class="row" data-ath="${a.id}" tabindex="0"><div class="av" style="--ac:${c}">${a.photo ? `<img src="${a.photo}" alt="">` : esc(initials(a.name))}</div>
-      <div><div class="rn">${esc(a.name)}</div><div class="rs">${esc([a.role, age(a.birth)].filter(Boolean).join(' · ') || 'Nessun dettaglio')}${a.injuries ? ' · <span style="color:#ff8a8f">infortunio/note</span>' : ''}</div></div>
+      <div><div class="rn">${esc(a.name)}</div><div class="rs">${esc((a.kind === 'client' ? ['Cliente', a.goal, a.level, age(a.birth)] : [a.role, age(a.birth)]).filter(Boolean).join(' · ') || 'Nessun dettaglio')}${a.injuries ? ' · <span style="color:#ff8a8f">infortunio/note</span>' : ''}</div></div>
       <div class="chips">${other.map(t => `<span class="chip" style="--tc:${t.color}" title="È anche in ${esc(t.name)}"><i></i>anche ${esc(t.name)}</span>`).join('')}</div></div>`;
 }
 function athGroupsHTML(list, cur) {
@@ -179,25 +179,47 @@ function athGroupsHTML(list, cur) {
       ${open ? (n ? `<div class="list">${g.items.map(a => athRowHTML(a, g.t && g.t.id)).join('')}</div>` : '<div class="rs agempty">Nessun atleta in questo gruppo.</div>') : ''}</section>`;
   }).join('');
 }
+/* scheda persona: Atleta (ruolo, sport) oppure Cliente di personal (obiettivo, misure antropometriche con storico) */
+const GOALS = ['Dimagrimento', 'Tonificazione', 'Ipertrofia', 'Forza', 'Salute e benessere', 'Postura e mal di schiena', 'Preparazione a un evento', 'Ritorno dopo un infortunio'];
+function isClientDefault() {
+  if (S.team === 'all') return false;
+  const t = teamById(S.team), mem = S.athletes.filter(a => (a.teamIds || []).includes(S.team));
+  const typed = mem.filter(a => a.kind);
+  if (typed.length) return typed.filter(a => a.kind === 'client').length > typed.length / 2;
+  return !!(t && /client|personal|privat/i.test(t.name));
+}
 function athleteForm(id) {
-  const a = id ? clone(S.athletes.find(x => x.id === id)) : { name: '', birth: '', role: '', injuries: '', contact: '', teamIds: S.team !== 'all' ? [S.team] : [] };
+  const a = id ? clone(S.athletes.find(x => x.id === id)) : { name: '', birth: '', role: '', injuries: '', contact: '', teamIds: S.team !== 'all' ? [S.team] : [], kind: isClientDefault() ? 'client' : 'athlete' };
+  a.kind = a.kind || 'athlete';
   const sel = new Set(a.teamIds || []);
-  const m = modal(id ? 'Modifica atleta' : 'Nuovo atleta', `
+  let kind = a.kind;
+  const m = modal(id ? (kind === 'client' ? 'Modifica cliente' : 'Modifica atleta') : 'Nuovo atleta o cliente', `
+    <div class="seg full kseg" role="group" aria-label="Tipo"><button type="button" data-k="athlete" aria-pressed="${kind === 'athlete'}">Atleta</button><button type="button" data-k="client" aria-pressed="${kind === 'client'}">Cliente personal</button></div>
     ${id ? athProgramsHTML(id) : ''}
     ${imgField('f-img', a.photo, 'Foto', 'photo')}
     <div class="fld"><label for="f-n">Nome e cognome</label><input id="f-n" class="inp" value="${esc(a.name)}" autocomplete="off"></div>
     <div class="two"><div class="fld"><label for="f-b">Data di nascita</label><input id="f-b" type="date" class="inp" value="${esc(a.birth)}"></div>
-    <div class="fld"><label for="f-r">Ruolo / sport</label><input id="f-r" class="inp" value="${esc(a.role)}" autocomplete="off"></div></div>
-    <div class="fld"><label>Squadre e clienti</label><div class="chk" id="f-t"></div>
-      <div class="addg"><input id="f-g" class="inp" placeholder="Nuova squadra o cliente" autocomplete="off"><button type="button" class="btn" id="f-ga">＋ Aggiungi</button></div></div>
-    <div class="fld"><label for="f-i">Infortuni e note</label><textarea id="f-i" class="inp" rows="3">${esc(a.injuries)}</textarea></div>
+      <div class="fld k-ath"><label for="f-r">Ruolo / sport</label><input id="f-r" class="inp" value="${esc(a.role)}" autocomplete="off"></div></div>
+    <div class="two k-cli"><div class="fld"><label for="f-o">Obiettivo</label><input id="f-o" class="inp" list="f-ol" value="${esc(a.goal || '')}" placeholder="Es. Dimagrimento" autocomplete="off"><datalist id="f-ol">${GOALS.map(g => `<option value="${g}">`).join('')}</datalist></div>
+      <div class="fld"><label for="f-l">Livello</label><select id="f-l" class="inp">${['', 'Principiante', 'Intermedio', 'Avanzato'].map(l => `<option value="${l}" ${a.level === l ? 'selected' : ''}>${l || '—'}</option>`).join('')}</select></div></div>
+    <div class="fld"><label>Gruppo (squadra o clienti)</label><div class="chk" id="f-t"></div>
+      <div class="addg"><input id="f-g" class="inp" placeholder="Nuovo gruppo" autocomplete="off"><button type="button" class="btn" id="f-ga">＋ Aggiungi</button></div></div>
+    <div class="fld"><label for="f-i" id="f-il">${kind === 'client' ? 'Patologie, infortuni e note' : 'Infortuni e note'}</label><textarea id="f-i" class="inp" rows="3">${esc(a.injuries)}</textarea></div>
     <div class="fld"><label for="f-c">Contatti</label><input id="f-c" class="inp" value="${esc(a.contact)}" placeholder="Telefono o email" autocomplete="off"></div>`,
     `${id ? '<button class="btn danger" id="f-del">Elimina</button>' : ''}<div class="grow"></div><button class="btn" data-close>Annulla</button><button class="btn pri" id="f-ok">Salva</button>`,
     (el, m) => {
+      const setKind = k => {
+        kind = k; $$('.kseg button', el).forEach(b => b.setAttribute('aria-pressed', b.dataset.k === k));
+        $$('.k-ath', el).forEach(x => { x.hidden = k !== 'athlete'; }); $$('.k-cli', el).forEach(x => { x.hidden = k !== 'client'; });
+        $('#f-il', el).textContent = k === 'client' ? 'Patologie, infortuni e note' : 'Infortuni e note';
+        if (!id) $('h3', el).textContent = k === 'client' ? 'Nuovo cliente' : 'Nuovo atleta';
+      };
+      $$('.kseg button', el).forEach(b => b.onclick = () => setKind(b.dataset.k));
+      setKind(kind);
       el.querySelectorAll('[data-openprog]').forEach(b => b.onclick = () => { el.remove(); openEditor(b.dataset.openprog); });
       el.querySelectorAll('[data-openhist]').forEach(b => b.onclick = () => { el.remove(); H.ath = b.dataset.openhist; H.ex = ''; S.view = 'history'; shell(); });
       const draw = () => {
-        const box = $('#f-t', el); box.innerHTML = S.teams.map(t => `<button type="button" data-t="${t.id}" style="--tc:${t.color}" aria-pressed="${sel.has(t.id)}"><i></i>${esc(t.name)}</button>`).join('') || '<span class="rs">Nessuna ancora: scrivi un nome qui sotto.</span>';
+        const box = $('#f-t', el); box.innerHTML = S.teams.map(t => `<button type="button" data-t="${t.id}" style="--tc:${t.color}" aria-pressed="${sel.has(t.id)}"><i></i>${esc(t.name)}</button>`).join('') || '<span class="rs">Nessuno ancora: scrivi un nome qui sotto.</span>';
         box.querySelectorAll('button').forEach(b => b.onclick = () => { const t = b.dataset.t; sel.has(t) ? sel.delete(t) : sel.add(t); b.setAttribute('aria-pressed', sel.has(t)); });
       };
       draw();
@@ -211,11 +233,14 @@ function athleteForm(id) {
       const img = wireImg(el, 'f-img', a.photo, 'photo');
       $('#f-ok', el).onclick = async () => {
         const name = $('#f-n', el).value.trim(); if (!name) { $('#f-n', el).focus(); return; }
-        const d = { name, birth: $('#f-b', el).value, role: $('#f-r', el).value.trim(), injuries: $('#f-i', el).value.trim(), contact: $('#f-c', el).value.trim(), teamIds: [...sel], photo: img.get(), updatedAt: Date.now() };
-        await Store.set('athletes', id || uid(), { ...(id ? { createdAt: a.createdAt } : { createdAt: Date.now() }), ...d }); m.close(); toast('Salvato');
+        const d = { name, kind, birth: $('#f-b', el).value, injuries: $('#f-i', el).value.trim(), contact: $('#f-c', el).value.trim(), teamIds: [...sel], photo: img.get(), updatedAt: Date.now() };
+        if (kind === 'athlete') Object.assign(d, { role: $('#f-r', el).value.trim() });
+        else Object.assign(d, { role: '', goal: $('#f-o', el).value.trim(), level: $('#f-l', el).value });
+        const keep = id ? stripId(a) : {};
+        await Store.set('athletes', id || uid(), { ...keep, ...(id ? { createdAt: a.createdAt } : { createdAt: Date.now() }), ...d }); m.close(); toast('Salvato');
       };
       const del = $('#f-del', el);
-      if (del) del.onclick = () => { del.textContent = 'Confermi l\'eliminazione?'; del.onclick = async () => { await Store.del('athletes', id); m.close(); toast('Atleta eliminato'); }; };
+      if (del) del.onclick = () => { del.textContent = 'Confermi l\'eliminazione?'; del.onclick = async () => { await Store.del('athletes', id); m.close(); toast('Eliminato'); }; };
     });
 }
 /* ---------- groups (squadre e clienti) ---------- */
