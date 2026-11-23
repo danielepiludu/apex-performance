@@ -382,3 +382,12 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .sh-pw{margin-top:8px;text-align:right;font-size:8.5px;color:#999;letter-spacing:.04em}
 .pw-print{display:none}
 @media print{.sh-pw{display:none}.pw-print{display:block;position:fixed;bottom:0;right:0;font-size:8.5px;color:#999;letter-spacing:.04em;font-family:Arial,Helvetica,sans-serif}}
+/* foglio "settimane affiancate": riempie la pagina */
+.sh.fit td{height:var(--rh);font-size:var(--fsw);padding-top:0;padding-bottom:0}
+.sh.fit td.ex{font-size:var(--fs);min-width:58mm}
+.sh.fit td.cod{font-size:calc(var(--fs) * .95);width:11mm}
+.sh.fit td.nt{font-size:calc(var(--fsw) * .8)}
+.sh.fit th{font-size:calc(var(--fs) * .6);padding:1.4mm 1mm}
+.sh.fit tr.bk td{height:auto;font-size:calc(var(--fs) * .66);padding:1.3mm 2mm 1mm 3mm}
+.sheet.land .sh-n{font-size:26px}.sheet.land .sh-w{font-size:18px}.sheet.land .sh-p,.sheet.land .sh-d{font-size:12px}
+@media print{.sheet.land,.sheet.port{min-height:0;width:auto}}

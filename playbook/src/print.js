@@ -116,7 +116,13 @@ function pageCols(P, ph, pi, wo) {
   const notes = wo.blocks.some(b => b.rows.some(r => (r.note || '').trim()));
   const span = 3 + W * per + (notes ? 1 : 0);
   const sub = `${ph.name} · ${W === 1 ? 'settimana ' + (s + 1) : `settimane ${s + 1}–${s + W}`}${P.start ? ' · dal ' + fmtDate(addDays(P.start, s * 7)) : ''}`;
-  let h = `${prSheet(P, 'land')}${prHead(P, `Giorno ${wo.day} · ${wo.title}`, sub)}<table class="sh"><thead><tr>
+  /* il foglio riempie la pagina A4 orizzontale: altezza delle righe e caratteri in base al numero di esercizi */
+  const N = wo.blocks.reduce((n, b) => n + b.rows.length, 0), B = wo.blocks.filter(b => b.rows.length).length;
+  const avail = 192 - 24 - 14 - 7; // mm: pagina meno margini, intestazione, testata tabella, firma
+  const rh = Math.max(7.5, Math.min(15, (avail - B * 6) / Math.max(N, 1)));
+  const fs = Math.max(3.1, Math.min(4.6, rh * 0.36)), wkCols = W * per;
+  const fsw = wkCols > 12 ? Math.min(fs, 3.4) : fs; // tante colonne: numeri un po' più piccoli
+  let h = `${prSheet(P, 'land')}${prHead(P, `Giorno ${wo.day} · ${wo.title}`, sub)}<table class="sh fit" style="--rh:${rh.toFixed(2)}mm;--fs:${fs.toFixed(2)}mm;--fsw:${fsw.toFixed(2)}mm"><thead><tr>
     <th rowspan="2" class="cod"></th><th rowspan="2" class="l">Esercizio</th><th rowspan="2">Rec</th>
     ${Array.from({ length: W }, (_, k) => `<th colspan="${per}" class="wc">Sett. ${s + k + 1}${P.start ? ' · ' + fmtDate(addDays(P.start, (s + k) * 7), true) : ''}</th>`).join('')}
     ${notes ? '<th rowspan="2" class="l">Note</th>' : ''}</tr>
