@@ -391,3 +391,11 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 .sh.fit tr.bk td{height:auto;font-size:calc(var(--fs) * .66);padding:1.3mm 2mm 1mm 3mm}
 .sheet.land .sh-n{font-size:26px}.sheet.land .sh-w{font-size:18px}.sheet.land .sh-p,.sheet.land .sh-d{font-size:12px}
 @media print{.sheet.land,.sheet.port{min-height:0;width:auto}}
+/* più spazio per scrivere i kg a mano */
+.sh.fit{table-layout:fixed}
+.sh.fit .kgc{width:var(--kgw);min-width:0}
+.sh.fit .wc{width:var(--sxw)}
+.sh.fit th.cod,.sh.fit td.cod{width:11mm}
+.sh.fit td.ex{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.sh .kgc{min-width:17mm}
+.sh td.kgu{min-width:15mm;height:10mm}
