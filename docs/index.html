@@ -426,6 +426,93 @@ em.up,.kg.up span{color:var(--good)!important}em.dn,.kg.dn span{color:#F5B02A!im
 /* scheda atleta / cliente */
 .kseg{margin-bottom:14px}
 
+/* ================= telefono: barra in basso, tocchi comodi, finestre a tutta altezza ================= */
+.tabbar,.mlogo{display:none}
+.edacts{display:flex;gap:8px;align-items:center}
+.bar{padding-top:env(safe-area-inset-top,0px);height:calc(56px + env(safe-area-inset-top,0px))}
+.side{padding-top:calc(14px + env(safe-area-inset-top,0px))}
+.pgm .pgw{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px}
+.pgw>div{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:7px 9px;display:flex;flex-direction:column;gap:2px}
+.pgw small{color:var(--muted);font-size:11px}.pgw b{font-size:14px;font-variant-numeric:tabular-nums}.pgw em{font-style:normal;color:var(--muted);font-size:11.5px}
+.pgf{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:0 12px}
+.pgprev .hint{margin:0 0 8px}
+.ce.rmc{color:#fff;cursor:not-allowed}
+@media (max-width:759px){
+  /* niente zoom automatico di iPhone quando si tocca un campo */
+  input,select,textarea,.inp,.wtab input,.mrow input,.ghost input{font-size:16px!important}
+  .side,.scrim,.hmenu{display:none!important}
+  .mlogo{display:block;height:22px;margin-right:2px}
+  .bar{padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px));gap:8px}
+  .teamsel{flex:1;min-width:0}.teamsel select{max-width:none;width:100%}
+  .stat{flex:none}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(17,17,19,.96);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid var(--line);padding:4px max(6px,env(safe-area-inset-right,0px)) calc(4px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px))}
+  .tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:0;color:var(--muted);font-size:11px;font-weight:600;padding:6px 0;min-height:52px;border-radius:10px}
+  .tabbar svg{width:23px;height:23px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .tabbar button[aria-current=page]{color:#fff}.tabbar button[aria-current=page] svg{stroke:var(--accent)}
+  .content{padding:16px max(14px,env(safe-area-inset-left,0px)) calc(96px + env(safe-area-inset-bottom,0px)) max(14px,env(safe-area-inset-right,0px))}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);text-align:center}
+  /* tocchi comodi */
+  .btn{height:44px;padding:0 16px}.btn.sm{height:40px;padding:0 13px;font-size:14px}.btn.ico{width:42px}
+  .ibtn{width:40px;height:40px}.ibtn.sm{width:36px;height:36px}
+  .inp{height:46px}.inp.sel{height:42px}
+  .pop button{min-height:46px;font-size:15px}
+  .chk button{padding:9px 14px}
+  /* intestazioni delle pagine */
+  .ph{gap:10px}.ph>div:first-child{flex:1 1 100%}.ph .grow{display:none}
+  .ph .search{flex:1 1 auto;min-width:0}
+  .ph h1{font-size:22px}
+  /* finestre: a tutta altezza, con i pulsanti sempre in vista */
+  .ov{align-items:flex-end}
+  .modal,.modal.wide{max-width:100%;width:100%;max-height:calc(100dvh - env(safe-area-inset-top,0px) - 8px);border-radius:18px 18px 0 0;padding:18px max(14px,env(safe-area-inset-left,0px)) 0 max(14px,env(safe-area-inset-right,0px))}
+  .modal .mf{position:sticky;bottom:0;background:var(--panel);margin:16px -14px 0;padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);z-index:3;flex-wrap:wrap}
+  .modal .mf .btn{flex:1 1 auto}.modal .mf .grow{display:none}
+  .modal .mf #wsave{display:none}
+  /* editor del programma */
+  .edbar{flex-wrap:wrap;gap:8px;margin-top:0}
+  .edbar .pname{flex:1 1 0;order:0;font-size:18px;min-width:0}
+  .edbar .tsel{flex:1 1 100%;width:100%}
+  .edacts{flex:1 1 100%;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}.edacts::-webkit-scrollbar{display:none}
+  .edacts .btn{flex:none}
+  .edsub{font-size:13px;line-height:1.6}
+  .wkc{margin:0 -14px;padding:2px 14px 10px}
+  .fc{min-width:84px;padding:8px 12px}
+  .mday .wcard{padding:14px}
+  .logb{height:44px;font-size:14px}
+  /* scheda dell'allenamento */
+  .weh{gap:8px}.weh .wtitle{flex:1 1 100%;font-size:18px}.weh>.muted{flex:1 1 auto;font-size:13px}
+  .weh .grow{display:none}
+  .modal.wide .wkc{position:sticky;top:-18px;z-index:2;background:var(--panel);margin:0 -14px;padding:10px 14px}
+  .mrow{padding:10px}
+  .mfl{grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:8px}
+  .mfl input{height:46px!important;text-align:center}
+  .mfl2{grid-template-columns:1fr}
+  #wed>.bhin{margin:18px 0 8px;flex-wrap:wrap}
+  .bhin .ibtn.sm{width:38px;height:38px}
+  .ghost.mg input{height:46px}
+  .wefoot .btn{width:100%;justify-content:center}
+  /* storico */
+  .hfil .inp.sel{flex:1 1 calc(50% - 4px);min-width:0}
+  .hfil .hex{flex:1 1 100%;width:auto}
+  .hfil .seg{flex:1 1 100%}.hfil .seg button{flex:1;height:40px}
+  .hfil .grow{display:none}
+  /* stampa */
+  .prbar .btn.pri{flex:1 1 100%;justify-content:center}
+  .propts{padding:14px}
+  /* firma in fondo alle impostazioni */
+  .sets .pwr{text-align:center;padding-top:6px}
+}
+@media (min-width:760px){.sets .pwr{display:none}}
+.weacts{display:flex;gap:8px;align-items:center}
+.bact{display:inline-flex;gap:2px}
+@media (max-width:759px){
+  .ph .search{flex:1 1 0;width:auto}
+  .ph .btn.pri{flex:none}
+  .weacts{flex:1 1 100%;overflow-x:auto;scrollbar-width:none}.weacts::-webkit-scrollbar{display:none}.weacts .btn{flex:none}
+  .weacts [data-e="paste"]{flex:1 1 auto;justify-content:center}
+  .bhin .bact{margin-left:auto}
+  .modal .mf .btn{justify-content:center}
+}
+
 </style>
 </head>
 <body>
@@ -469,66 +556,106 @@ function addDays(iso, n) { const d = new Date(iso + 'T12:00:00'); d.setDate(d.ge
 function fmtDate(iso, short) { if (!iso) return ''; const [y, m, d] = iso.split('-'); return short ? `${d}/${m}` : `${d}/${m}/${y}`; }
 function nextMonday() { const t = todayISO(), d = new Date(t + 'T12:00:00').getDay(); return addDays(t, ((8 - d) % 7) || 7); }
 
-/* ============ motore delle progressioni (dal lavoro Don Bosco, reso neutro) ============
+/* ============ motore delle progressioni ============
    Una riga = un esercizio. row.w[i] = valori della settimana i della fase.
    La settimana 0 è la base; le altre sono calcolate dalla progressione,
    tranne i campi corretti a mano (row.w[i].m[campo] = true), che restano.
-   row.ath = true → i kg restano vuoti: li scrive l'atleta. */
+   row.ath = true → i kg restano vuoti: li scrive l'atleta.
+
+   Tipi di progressione (row.prog.type):
+   none      costante (eventualmente solo RPE che sale)
+   load_kg   +step kg ogni `every` settimane (step anche negativo)
+   load_pct  +step % ogni `every` settimane, arrotondato a `round` kg
+   rm        % del massimale: rm kg × (start% + step% × settimana), arrotondato
+   sets      +inc serie ogni `every` settimane, fino a `max`
+   reps      +inc ripetizioni o secondi ("30s") ogni `every` settimane, fino a `max` (o giù fino a `max` se inc < 0)
+   inverse   −dec ripetizioni a settimana (non sotto `min`) e +step kg a settimana
+   double    doppia progressione: rip +1 fino a repMax, poi +step kg e si riparte
+   Per tutti: rpeStep (RPE in più a settimana), deload (ultima settimana di scarico:
+   deloadPct % del carico, deloadSets = una serie in meno, RPE −1). */
 const FIELDS = ['sets', 'reps', 'load', 'rest', 'rpe'];
 const FIELD_LABEL = { sets: 'Serie', reps: 'Rip', load: 'Kg', rest: 'Rec', rpe: 'RPE' };
 const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 const PRESETS = [
-  { k: 'none', name: 'Costante', short: '—', desc: 'Stessi valori ogni settimana', p: { type: 'none' } },
-  { k: 'kg25', name: '+2,5 kg a settimana', short: '+2,5 kg', desc: 'Complementari, arti superiori', p: { type: 'load_kg', step: 2.5 } },
-  { k: 'kg5', name: '+5 kg a settimana', short: '+5 kg', desc: 'Forza arto inferiore', p: { type: 'load_kg', step: 5 } },
-  { k: 'pct', name: '+2,5% a settimana', short: '+2,5%', desc: 'Arrotondato a 2,5 kg', p: { type: 'load_pct', step: 2.5, round: 2.5 } },
-  { k: 'wave', name: 'Onda con scarico finale', short: 'Onda', desc: '+5% a settimana, ultima settimana all\'85%', p: { type: 'load_pct', step: 5, round: 2.5, deload: true, deloadPct: 85 } },
-  { k: 'setsw', name: '+1 serie a settimana', short: '+1 serie', desc: 'Fino a 6 serie', p: { type: 'sets', inc: 1, every: 1, max: 6 } },
-  { k: 'sets2', name: '+1 serie ogni 2 settimane', short: '+1 s/2 sett', desc: 'Salita più graduale', p: { type: 'sets', inc: 1, every: 2, max: 6 } },
-  { k: 'reps', name: '+1 ripetizione a settimana', short: '+1 rip', desc: 'Solo se le rip sono un numero', p: { type: 'reps', inc: 1, every: 1, max: 0 } },
-  { k: 'dbl', name: 'Doppia progressione', short: 'Doppia', desc: 'Sale di rip fino a +3, poi +2,5 kg e riparte', p: { type: 'double', repMax: 0, step: 2.5 } },
-  { k: 'rpe', name: 'RPE +0,5 a settimana', short: 'RPE +0,5', desc: 'Resto invariato', p: { type: 'none', rpeStep: 0.5 } }
+  { k: 'none', name: 'Costante', p: { type: 'none' } },
+  { k: 'kg25', name: '+2,5 kg a settimana', p: { type: 'load_kg', step: 2.5 } },
+  { k: 'kg5', name: '+5 kg a settimana', p: { type: 'load_kg', step: 5 } },
+  { k: 'pct', name: '+2,5% a settimana', p: { type: 'load_pct', step: 2.5, round: 2.5 } },
+  { k: 'wave', name: 'Onda con scarico finale', p: { type: 'load_pct', step: 5, round: 2.5, deload: true, deloadPct: 85 } },
+  { k: 'setsw', name: '+1 serie a settimana', p: { type: 'sets', inc: 1, every: 1, max: 6 } },
+  { k: 'sets2', name: '+1 serie ogni 2 settimane', p: { type: 'sets', inc: 1, every: 2, max: 6 } },
+  { k: 'reps', name: '+1 ripetizione a settimana', p: { type: 'reps', inc: 1, every: 1, max: 0 } },
+  { k: 'secs', name: '+5 secondi a settimana', p: { type: 'reps', inc: 5, every: 1, max: 0 } },
+  { k: 'inv', name: 'Rip giù, carico su (−1 rip, +2,5 kg)', p: { type: 'inverse', dec: 1, min: 1, step: 2.5 } },
+  { k: 'dbl', name: 'Doppia progressione', p: { type: 'double', repMax: 0, step: 2.5 } },
+  { k: 'rpe', name: 'RPE +0,5 a settimana', p: { type: 'none', rpeStep: 0.5 } }
 ];
-function progEq(a, b) {
-  const n = p => {
-    p = p || {}; const t = p.type || 'none', o = { t, dl: !!p.deload, dp: p.deload ? (p.deloadPct || 90) : 0, rpe: p.rpeStep || 0 };
-    if (t === 'load_kg') o.st = num(p.step) || 0;
-    if (t === 'load_pct') { o.st = num(p.step) || 0; o.rd = p.round || 2.5; }
-    if (t === 'sets' || t === 'reps') { o.inc = p.inc || 1; o.ev = p.every || 1; o.mx = p.max || 0; }
-    if (t === 'double') { o.rm = p.repMax || 0; o.st = num(p.step) || 0; }
-    return o;
-  };
-  const x = n(a), y = n(b); return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => x[k] === y[k]);
+/* forma normalizzata: due progressioni sono uguali se producono gli stessi numeri */
+function progNorm(p) {
+  p = p || {}; const t = p.type || 'none', n = x => num(x) || 0;
+  const o = { t, rpe: n(p.rpeStep), dl: !!p.deload };
+  if (o.dl) { o.dp = n(p.deloadPct) || 90; o.ds = !!p.deloadSets; }
+  if (t === 'load_kg') { o.st = n(p.step); o.ev = n(p.every) || 1; }
+  if (t === 'load_pct') { o.st = n(p.step); o.ev = n(p.every) || 1; o.rd = n(p.round) || 2.5; }
+  if (t === 'rm') { o.rm = n(p.rm); o.sp = n(p.start); o.st = n(p.step); o.rd = n(p.round) || 2.5; }
+  if (t === 'sets' || t === 'reps') { o.inc = n(p.inc) || 1; o.ev = n(p.every) || 1; o.mx = n(p.max); }
+  if (t === 'inverse') { o.dec = n(p.dec) || 1; o.mn = n(p.min) || 1; o.st = n(p.step); }
+  if (t === 'double') { o.rm = n(p.repMax); o.st = n(p.step); }
+  return o;
 }
+function progEq(a, b) { const x = progNorm(a), y = progNorm(b); return Object.keys(x).length === Object.keys(y).length && Object.keys(x).every(k => x[k] === y[k]); }
 function presetKeyOf(p) { const f = PRESETS.find(x => progEq(x.p, p || { type: 'none' })); return f ? f.k : 'custom'; }
 const presetBy = k => PRESETS.find(x => x.k === k);
+/* le progressioni che toccano i kg: incompatibili con "kg vuoti, li scrive l'atleta" */
+const progUsesLoad = p => /^(load_kg|load_pct|rm|inverse|double)$/.test((p && p.type) || '');
+
+/* ripetizioni o tempo: "8", "30s", "45\"" → { n: 30, suf: 's' }; intervalli e testo → null */
+function repParts(v) {
+  const m = /^\s*(\d+)\s*(s|sec|secondi|"|''|m|mt|metri)?\s*$/i.exec(String(v ?? ''));
+  return m ? { n: +m[1], suf: m[2] ? (m[2] === "''" ? '"' : m[2]) : '' } : null;
+}
+const repStr = (n, suf) => String(n) + (suf || '');
+function rmLoad(p, i) {
+  const rm = num(p.rm), pc = (num(p.start) || 0) + (num(p.step) || 0) * i;
+  return rm && pc > 0 ? fmtN(roundTo(rm * pc / 100, num(p.round) || 2.5)) : null;
+}
+const stepsAt = (i, every) => Math.floor(i / (Math.max(1, num(every) || 1)));
 
 function progVals(row, i) {
   const b = row.w[0], p = row.prog || {};
   const v = { sets: b.sets, reps: b.reps, load: b.load, rest: b.rest, rpe: b.rpe };
+  if (p.type === 'rm') { const l = rmLoad(p, i); if (l != null) v.load = l; }
   if (i === 0) return v;
-  const L = num(b.load), S = intOnly(b.sets), R = intOnly(b.reps), E = num(b.rpe);
-  const rnd = p.round || 2.5;
+  const L = num(b.load), S = intOnly(b.sets), R = repParts(b.reps), E = num(b.rpe);
   switch (p.type) {
-    case 'load_kg': if (L != null) v.load = fmtN(L + (num(p.step) || 0) * i); break;
-    case 'load_pct': if (L != null) v.load = fmtN(roundTo(L * (1 + ((num(p.step) || 0) / 100) * i), rnd)); break;
+    case 'load_kg': if (L != null) v.load = fmtN(L + (num(p.step) || 0) * stepsAt(i, p.every)); break;
+    case 'load_pct': if (L != null) v.load = fmtN(roundTo(L * (1 + ((num(p.step) || 0) / 100) * stepsAt(i, p.every)), num(p.round) || 2.5)); break;
     case 'sets':
-      if (S != null) { let s = S + Math.floor(i / (p.every || 1)) * (p.inc || 1); if (p.max) s = Math.min(s, Math.max(p.max, S)); v.sets = String(s); }
+      if (S != null) { let s = S + stepsAt(i, p.every) * (num(p.inc) || 1); if (num(p.max)) s = Math.min(s, Math.max(num(p.max), S)); v.sets = String(Math.max(1, s)); }
       break;
     case 'reps':
-      if (R != null) { let r = R + Math.floor(i / (p.every || 1)) * (p.inc || 1); if (p.max) r = Math.min(r, Math.max(p.max, R)); v.reps = String(r); }
+      if (R) {
+        const inc = num(p.inc) || 1, mx = num(p.max);
+        let r = R.n + stepsAt(i, p.every) * inc;
+        if (mx) r = inc > 0 ? Math.min(r, Math.max(mx, R.n)) : Math.max(r, Math.min(mx, R.n));
+        v.reps = repStr(Math.max(1, r), R.suf);
+      }
+      break;
+    case 'inverse':
+      if (R) v.reps = repStr(Math.max(num(p.min) || 1, R.n - (num(p.dec) || 1) * i), R.suf);
+      if (L != null) v.load = fmtN(L + (num(p.step) || 0) * i);
       break;
     case 'double':
-      if (R != null) {
-        const max = p.repMax && p.repMax > R ? p.repMax : R + 3;
-        let reps = R, load = L;
-        for (let j = 0; j < i; j++) { if (reps < max) reps++; else { reps = R; if (load != null) load += (num(p.step) || 0); } }
-        v.reps = String(reps); if (load != null) v.load = fmtN(load);
+      if (R) {
+        const max = num(p.repMax) > R.n ? num(p.repMax) : R.n + 3;
+        let reps = R.n, load = L;
+        for (let j = 0; j < i; j++) { if (reps < max) reps++; else { reps = R.n; if (load != null) load += (num(p.step) || 0); } }
+        v.reps = repStr(reps, R.suf); if (load != null) v.load = fmtN(load);
       }
       break;
   }
-  if (p.rpeStep && E != null) v.rpe = fmtN(Math.min(10, E + p.rpeStep * i));
+  if (num(p.rpeStep) && E != null) v.rpe = fmtN(Math.min(10, E + num(p.rpeStep) * i));
   return v;
 }
 function autoVals(row, i, W) {
@@ -536,7 +663,8 @@ function autoVals(row, i, W) {
   let v;
   if (p.deload && W >= 3 && i === W - 1) {
     v = progVals(row, W - 2);
-    const L = num(v.load); if (L != null) v.load = fmtN(roundTo(L * ((p.deloadPct || 90) / 100), p.round || 2.5));
+    const L = num(v.load); if (L != null) v.load = fmtN(roundTo(L * ((num(p.deloadPct) || 90) / 100), num(p.round) || 2.5));
+    if (p.deloadSets) { const s = intOnly(v.sets); if (s != null) v.sets = String(Math.max(1, s - 1)); }
     const E = num(v.rpe); if (E != null) v.rpe = fmtN(Math.max(1, E - 1));
   } else v = progVals(row, i);
   if (row.ath) v.load = '';
@@ -546,10 +674,11 @@ function recompute(row, W) {
   row.w = row.w || [];
   if (!row.w.length) row.w.push({ sets: '', reps: '', load: '', rest: '', rpe: '', m: {} });
   while (row.w.length < W) row.w.push({ m: {} });
-  row.w.length = W;
+  row.w.length = Math.max(1, W);
   row.w[0].m = {};
   if (row.ath) row.w[0].load = '';
-  for (let i = 1; i < W; i++) {
+  else if (row.prog && row.prog.type === 'rm') { const l = rmLoad(row.prog, 0); if (l != null) row.w[0].load = l; }
+  for (let i = 1; i < row.w.length; i++) {
     const w = row.w[i]; w.m = w.m || {};
     if (row.ath) delete w.m.load;
     const a = autoVals(row, i, W);
@@ -563,10 +692,25 @@ function newRow(name, W, base) {
 }
 function hasManual(row) { return row.w.some((w, i) => i > 0 && Object.values(w.m || {}).some(Boolean)); }
 function resetManual(row, W) { row.w.forEach(w => { w.m = {}; }); recompute(row, W); }
+/* descrizione leggibile, anche per le progressioni personalizzate */
 function progLabel(p) {
   p = p || { type: 'none' };
   const k = presetKeyOf(p); if (k !== 'custom') return presetBy(k).name;
-  return 'Personalizzata';
+  const n = x => fmtN(num(x) || 0), ev = e => (num(e) || 1) > 1 ? ` ogni ${num(e)} sett.` : ' a settimana', sg = x => (num(x) || 0) >= 0 ? '+' : '';
+  let s;
+  switch (p.type) {
+    case 'load_kg': s = `${sg(p.step)}${n(p.step)} kg${ev(p.every)}`; break;
+    case 'load_pct': s = `${sg(p.step)}${n(p.step)}%${ev(p.every)}`; break;
+    case 'rm': s = `${n(p.start)}% di ${n(p.rm)} kg, ${sg(p.step)}${n(p.step)}% a sett.`; break;
+    case 'sets': s = `${sg(p.inc)}${n(p.inc || 1)} serie${ev(p.every)}${num(p.max) ? ` (max ${num(p.max)})` : ''}`; break;
+    case 'reps': s = `${sg(p.inc)}${n(p.inc || 1)} rip/sec${ev(p.every)}`; break;
+    case 'inverse': s = `−${n(p.dec || 1)} rip e ${sg(p.step)}${n(p.step)} kg a sett.`; break;
+    case 'double': s = `Doppia progressione${num(p.repMax) ? ` fino a ${num(p.repMax)} rip` : ''}, ${sg(p.step)}${n(p.step)} kg`; break;
+    default: s = 'Costante';
+  }
+  if (num(p.rpeStep)) s += ` · RPE +${n(p.rpeStep)}`;
+  if (p.deload) s += ` · scarico ${n(p.deloadPct || 90)}%`;
+  return s;
 }
 
 /* ============ inserimento rapido: una riga per esercizio ============
@@ -583,12 +727,13 @@ function parseLine(src) {
   if (take(/\b(?:kg|carico|carichi)\s*(?:atleta|liberi?|vuoti?)\b/i)) out.ath = true;
   if ((m = take(/\bonda\b/i))) out.prog = 'wave';
   else if ((m = take(/\bdoppia\b/i))) out.prog = 'dbl';
-  else if ((m = take(/\+\s*(\d+(?:[.,]\d+)?)\s*(kg|chili|%|serie|sets?|s\b|rip\w*|r\b)(?:\s*\/\s*(?:sett\w*|w\w*))?/i))) {
+  else if ((m = take(/\+\s*(\d+(?:[.,]\d+)?)\s*(kg|chili|%|secondi|sec|"|serie|sets?|s\b|rip\w*|r\b)(?:\s*\/\s*(?:sett\w*|w\w*))?/i))) {
     const v = parseFloat(dec(m[1])), u = m[2].toLowerCase();
     if (u === 'kg' || u === 'chili') out.prog = v === 5 ? 'kg5' : v === 2.5 ? 'kg25' : { type: 'load_kg', step: v };
     else if (u === '%') out.prog = v === 2.5 ? 'pct' : { type: 'load_pct', step: v, round: 2.5 };
-    else if (/^(serie|set|s)/.test(u)) out.prog = 'setsw';
-    else out.prog = 'reps';
+    else if (u === 'secondi' || u === 'sec' || u === '"') out.prog = v === 5 ? 'secs' : { type: 'reps', inc: v, every: 1, max: 0 };
+    else if (/^(serie|set|s)/.test(u)) out.prog = v === 1 ? 'setsw' : { type: 'sets', inc: v, every: 1, max: 0 };
+    else out.prog = v === 1 ? 'reps' : { type: 'reps', inc: v, every: 1, max: 0 };
   }
   if ((m = take(/\b(?:rec|rest|r)\s*\.?\s*(\d+(?:'\d*)?)\s*(s|sec|min|m|"|')?/i))) {
     out.rest = m[1].includes("'") ? m[1] : (m[2] && /min|m/i.test(m[2]) ? m[1] + "'" : m[1] + '"');
@@ -883,6 +1028,7 @@ function settingsView(el) {
     </section>
     ${demoLeft ? `<section class="sbox"><h3>Dati di esempio</h3><p class="rs">La squadra "Baseball Demo", i 5 atleti di prova e il programma di esempio servono solo per provare l'app.</p>
       <button class="btn danger" data-s="demo">Elimina i dati di esempio</button></section>` : ''}
+    ${poweredHTML()}
   </div>`;
   el.onclick = async e => {
     const b = e.target.closest('[data-s]'); if (!b) return;
@@ -994,8 +1140,14 @@ const Store = {
     this.watch(col); setTimeout(() => this.emit(col), 0);
   },
   emit(col) { const docs = Object.entries(this.cols[col] || {}).map(([id, d]) => ({ id, ...clone(d) })); (this.subs[col] || []).forEach(cb => cb(docs)); },
-  async set(col, id, data) { (this.cols[col] = this.cols[col] || {})[id] = clone(data); this.pend.push({ op: 'set', col, id, data: clone(data) }); this.persist(); this.emit(col); this.note(); this.flush(); },
-  async del(col, id) { delete (this.cols[col] || {})[id]; this.pend.push({ op: 'del', col, id }); this.persist(); this.emit(col); this.note(); this.flush(); },
+  queue(op) {
+    // tiene solo l'ultima modifica in attesa per lo stesso documento (non quella già in invio)
+    const from = this.flushing ? 1 : 0;
+    this.pend = this.pend.filter((p, k) => k < from || !(p.col === op.col && p.id === op.id));
+    this.pend.push(op);
+  },
+  async set(col, id, data) { (this.cols[col] = this.cols[col] || {})[id] = clone(data); this.queue({ op: 'set', col, id, data: clone(data) }); this.persist(); this.emit(col); this.note(); this.flush(); },
+  async del(col, id) { delete (this.cols[col] || {})[id]; this.queue({ op: 'del', col, id }); this.persist(); this.emit(col); this.note(); this.flush(); },
   async flush() {
     if (this.flushing || !this.db || this.mode === 'mem') return; this.flushing = true;
     try {
@@ -1004,7 +1156,17 @@ const Store = {
         await (p.op === 'set' ? d.set(p.data) : d.delete());
         this.pend.shift(); this.failed = false; this.persist(); this.note();
       }
-    } catch (e) { console.error(e); this.failed = true; setTimeout(() => this.flush(), 15000); }
+    } catch (e) {
+      console.error(e);
+      const code = (e && e.code) || '';
+      if (/invalid-argument|permission-denied|failed-precondition|out-of-range/.test(code)) {
+        // rifiuto definitivo (es. documento troppo grande): si scarta e si prosegue con le altre modifiche
+        const bad = this.pend.shift(); this.persist();
+        toast(`Una modifica non è stata salvata online (${bad && bad.col === 'athletes' ? 'scheda persona' : bad && bad.col === 'programs' ? 'programma' : 'dati'}): ${code}`);
+        this.flushing = false; return this.flush();
+      }
+      this.failed = true; setTimeout(() => this.flush(), 15000);
+    }
     this.flushing = false; this.note();
   }
 };
@@ -1029,7 +1191,7 @@ function modal(title, body, footer, onMount, opts = {}) {
   if (!opts.noFocus) { const f = bg.querySelector('input,textarea'); if (f) f.focus({ preventScroll: true }); }
   return m;
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = $$('.ov').pop(); if (o) { const c = o.querySelector('[data-close]'); c ? c.click() : o.remove(); } } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const pm = $$('.pop'); if (pm.length) { pm.forEach(x => x.remove()); return; } const o = $$('.ov').pop(); if (o) { const c = o.querySelector('[data-close]'); c ? c.click() : o.remove(); } } });
 /* ---------- render shell ---------- */
 function shell() {
   try { localStorage.setItem('pb_last', JSON.stringify({ view: S.view, pid: S.pid })); } catch (e) { }
@@ -1045,14 +1207,15 @@ function shell() {
   </aside>
   <div class="main">
     <header class="bar">
-      <button class="ibtn" data-a="menu" aria-label="Menu">${ic('menu')}</button>
+      <button class="ibtn hmenu" data-a="menu" aria-label="Menu">${ic('menu')}</button><img class="lmark mlogo" src="${LOGO}" alt="">
       <div class="teamsel" style="--tc:${cur ? cur.color : 'var(--muted)'}"><i></i>
         <select id="teamsel" aria-label="Squadra o cliente"><option value="all">Tutti</option>${S.teams.map(t => `<option value="${t.id}" ${t.id === S.team ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}<option disabled>──────────</option><option value="__new">＋ Nuova squadra o cliente…</option></select></div>
       <div class="grow"></div>
       <span class="stat" id="mode"></span>
     </header>
     <main class="content${S.view === 'editor' || S.view === 'print' ? ' wide' : ''}"><div class="page" id="page"></div></main>
-  </div>`;
+  </div>
+  <nav class="tabbar" aria-label="Sezioni">${[...NAV.map(([k, l, i]) => [k, l.split(' ')[0], i]), ['settings', 'Altro', 'gear']].map(([k, l, i]) => `<button data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span></button>`).join('')}</nav>`;
   showStat(); page();
 }
 function showStat() {
@@ -1069,12 +1232,11 @@ function page() {
   if (S.view === 'print') return printView(el);
   if (S.view === 'settings') return settingsView(el);
   if (S.view === 'history') return historyView(el);
-    const n = NAV.find(x => x[0] === S.view) || [];
-  el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
+  S.view = 'athletes'; return athletesView(el);
 }
 /* ---------- athletes ---------- */
 function athletesView(el) {
-  const list = S.athletes.filter(inTeam).filter(a => !S.q || (a.name + ' ' + (a.role || '')).toLowerCase().includes(S.q.toLowerCase())).sort(byName);
+  const list = S.athletes.filter(inTeam).filter(a => !S.q || [a.name, a.role, a.goal].filter(Boolean).join(' ').toLowerCase().includes(S.q.toLowerCase())).sort(byName);
   const cur = S.teams.find(t => t.id === S.team);
   el.innerHTML = `<div class="ph"><div><h1>${cur ? `${cur.logo ? `<img class="glogo" src="${cur.logo}" alt="">` : `<span class="gdot" style="background:${cur.color}"></span>`}${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
     <input class="inp search" id="q" type="search" placeholder="Cerca per nome o ruolo" value="${esc(S.q)}" aria-label="Cerca">
@@ -1164,7 +1326,16 @@ function athleteForm(id) {
         await Store.set('athletes', id || uid(), { ...keep, ...(id ? { createdAt: a.createdAt } : { createdAt: Date.now() }), ...d }); m.close(); toast('Salvato');
       };
       const del = $('#f-del', el);
-      if (del) del.onclick = () => { del.textContent = 'Confermi l\'eliminazione?'; del.onclick = async () => { await Store.del('athletes', id); m.close(); toast('Eliminato'); }; };
+      if (del) del.onclick = () => {
+        const progs = S.programs.filter(p => p.athleteId === id), logs = S.logs.filter(l => l.athleteId === id);
+        const extra = [progs.length ? `${progs.length} ${progs.length === 1 ? 'programma' : 'programmi'}` : '', logs.length ? `${logs.length} ${logs.length === 1 ? 'allenamento registrato' : 'allenamenti registrati'}` : ''].filter(Boolean).join(' e ');
+        del.textContent = extra ? `Elimina anche ${extra}. Confermi?` : 'Confermi l\'eliminazione?';
+        del.onclick = async () => {
+          for (const p of progs) await Store.del('programs', p.id);
+          for (const l of logs) await Store.del('logs', l.id);
+          await Store.del('athletes', id); m.close(); toast('Eliminato');
+        };
+      };
     });
 }
 /* ---------- groups (squadre e clienti) ---------- */
@@ -1265,6 +1436,7 @@ function progStatus(p) {
   return t < p.start ? 'Da iniziare' : t > end ? 'Concluso' : 'In corso';
 }
 
+function chipIntoView(el) { const c = el && el.querySelector('.wkc [aria-pressed="true"]'); if (c && c.parentElement) c.parentElement.scrollLeft = c.offsetLeft - c.parentElement.clientWidth / 2 + c.offsetWidth / 2; }
 /* ---------- piccolo menu a comparsa ---------- */
 function popMenu(anchor, items) {
   $$('.pop').forEach(x => x.remove());
@@ -1343,16 +1515,16 @@ function editorView(el) {
       <select class="inp sel tsel" data-x="pteam" aria-label="Per chi è il programma" style="--tc:${own.color}">${ownerOptions(ownerKey(P))}</select>
       <div class="grow"></div>
       ${mob ? '' : `<div class="seg" role="group" aria-label="Vista">${dens.map(([k, l]) => `<button data-x="dens" data-k="${k}" aria-pressed="${S.density === k}">${l}</button>`).join('')}</div>`}
-      <button class="btn sm ico" data-x="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-x="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
+      <div class="edacts"><button class="btn sm ico" data-x="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-x="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
       <button class="btn sm" data-x="addweek">＋ Settimana</button>
       <button class="btn sm" data-x="phases">Fasi</button>
       <button class="btn sm" data-x="assign">Assegna</button>
       <button class="btn sm pri" data-x="print">Stampa</button>
-      <button class="btn sm ico" data-x="pmenu" aria-label="Altre azioni">${ic('more')}</button>
+      <button class="btn sm ico" data-x="pmenu" aria-label="Altre azioni">${ic('more')}</button></div>
     </div>
     <div class="edsub"><label class="sdate">Inizio <input type="date" data-x="pstart" value="${esc(P.start || '')}" aria-label="Data di inizio"></label> · ${W} settimane · ${P.phases.length} ${P.phases.length === 1 ? 'fase' : 'fasi'} · ${P.loadMode === 'ath' ? 'kg vuoti, li scrive l\'atleta' : 'carichi in progressione automatica'}${mob ? '' : ' · trascina un allenamento per spostarlo (tieni premuto Alt per copiarlo)'}</div>
     ${mob ? calMobile(P) : calDesktop(P)}`;
-  wireEditor(el); undoBtns();
+  wireEditor(el); undoBtns(); chipIntoView(el);
 }
 function phaseHead(P, ph, pi) {
   const s = phaseStart(P, pi);
@@ -1454,7 +1626,7 @@ function weekMenu(b, g, el) {
     { label: 'Duplica settimana (stessi valori)', fn: () => { dupWeek(P, g); if (isMob()) S.mw = g + 1; done(`Settimana ${g + 1} duplicata`); } },
     i > 0 && { label: 'Inizia una nuova fase da qui', fn: () => { splitPhase(P, g); done('Nuova fase creata: ora puoi cambiare gli esercizi'); } },
     { sep: true },
-    { label: 'Elimina settimana', danger: true, disabled: W === 1, confirm: 'Confermi l\'eliminazione?', fn: () => { if (delWeek(P, g)) { if (S.mw >= totalWeeks(P)) S.mw = totalWeeks(P) - 1; done('Settimana eliminata'); } } }
+    { label: ph.weeks === 1 && P.phases.length > 1 ? `Elimina settimana (e la fase ${ph.name})` : 'Elimina settimana', danger: true, disabled: W === 1, confirm: 'Confermi l\'eliminazione?', fn: () => { if (delWeek(P, g)) { if (S.mw >= totalWeeks(P)) S.mw = totalWeeks(P) - 1; done('Settimana eliminata'); } } }
   ]);
 }
 function progMenu(b) {
@@ -1513,8 +1685,8 @@ function assignDialog() {
       const upd = () => { ok.disabled = !sel.size; ok.textContent = sel.size > 1 ? `Assegna a ${sel.size} atleti` : 'Assegna'; };
       const draw = () => {
         const box = $('#as-l', el), L = list();
-        box.innerHTML = L.map(a => { const t = teamById((a.teamIds || [])[0]); return `<button type="button" data-a="${a.id}" style="--tc:${t ? t.color : '#777'}" aria-pressed="${sel.has(a.id)}"><i></i>${esc(a.name)}</button>`; }).join('') || '<span class="rs">Nessun atleta in questo gruppo.</span>';
-        $$('button', box).forEach(b => b.onclick = () => { const id = b.dataset.a; sel.has(id) ? sel.delete(id) : sel.add(id); b.setAttribute('aria-pressed', sel.has(id)); upd(); });
+        box.innerHTML = L.map(a => { const t = teamById((a.teamIds || [])[0]); return `<button type="button" data-aid="${a.id}" style="--tc:${t ? t.color : '#777'}" aria-pressed="${sel.has(a.id)}"><i></i>${esc(a.name)}</button>`; }).join('') || '<span class="rs">Nessun atleta in questo gruppo.</span>';
+        $$('button', box).forEach(b => b.onclick = () => { const id = b.dataset.aid; sel.has(id) ? sel.delete(id) : sel.add(id); b.setAttribute('aria-pressed', sel.has(id)); upd(); });
         upd();
       };
       draw();
@@ -1560,12 +1732,85 @@ function openWorkout(pi, wid, i) {
 function progOptions(r) {
   const k = presetKeyOf(r.prog), athOnly = r.ath && k === 'none';
   return PRESETS.map(x => `<option value="${x.k}" ${!athOnly && x.k === k ? 'selected' : ''}>${esc(x.name)}</option>`).join('') +
-    (k === 'custom' ? '<option value="custom" selected disabled>Personalizzata</option>' : '') +
-    `<option value="__ath" ${athOnly ? 'selected' : ''}>Kg vuoti: li scrive l'atleta</option>`;
+    (k === 'custom' ? `<option value="custom" selected>${esc(progLabel(r.prog))}</option>` : '') +
+    `<option value="__ath" ${athOnly ? 'selected' : ''}>Kg vuoti: li scrive l'atleta</option><option value="__custom">Personalizza…</option>`;
+}
+/* finestra per costruire una progressione su misura, con l'anteprima delle settimane */
+const PTYPES = [['none', 'Costante'], ['load_kg', 'Carico: + kg'], ['load_pct', 'Carico: + %'], ['rm', '% del massimale (1RM)'], ['sets', 'Serie in più'], ['reps', 'Ripetizioni o secondi in più'], ['inverse', 'Ripetizioni giù, carico su'], ['double', 'Doppia progressione']];
+const PDEF = { none: {}, load_kg: { step: 2.5, every: 1 }, load_pct: { step: 2.5, every: 1, round: 2.5 }, rm: { rm: '', start: 70, step: 5, round: 2.5 }, sets: { inc: 1, every: 1, max: 6 }, reps: { inc: 1, every: 1, max: 0 }, inverse: { dec: 1, min: 1, step: 2.5 }, double: { repMax: 0, step: 2.5 } };
+const PFIELDS = {
+  load_kg: [['step', 'Kg in più (anche negativo)'], ['every', 'Ogni quante settimane']],
+  load_pct: [['step', '% in più'], ['every', 'Ogni quante settimane'], ['round', 'Arrotonda a kg']],
+  rm: [['rm', 'Massimale (kg)'], ['start', '% della settimana 1'], ['step', '% in più a settimana'], ['round', 'Arrotonda a kg']],
+  sets: [['inc', 'Serie in più'], ['every', 'Ogni quante settimane'], ['max', 'Massimo serie (0 = nessuno)']],
+  reps: [['inc', 'Rip o secondi in più (anche negativo)'], ['every', 'Ogni quante settimane'], ['max', 'Limite (0 = nessuno)']],
+  inverse: [['dec', 'Rip in meno a settimana'], ['min', 'Rip minime'], ['step', 'Kg in più a settimana']],
+  double: [['repMax', 'Rip massime (0 = iniziali + 3)'], ['step', 'Kg in più quando arrivi al massimo']]
+};
+function progDialog(rid) {
+  const c0 = weCur(); if (!c0.wo) return;
+  const f0 = findRowIn(c0.wo, rid); if (!f0) return;
+  let p = clone(f0.r.prog || { type: 'none' });
+  const multi = f0.b.rows.length > 1;
+  modal('Progressione · ' + (f0.r.name || 'esercizio'), `<div class="pgd"><div class="fld"><label for="pg-t">Tipo</label><select id="pg-t" class="inp">${PTYPES.map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></div>
+      <div id="pg-f" class="pgf"></div>
+      <div class="pgf">
+        <div class="fld"><label for="pg-rpe">RPE in più a settimana</label><select id="pg-rpe" class="inp">${[['0', 'No'], ['0.5', '+0,5'], ['1', '+1']].map(([v, l]) => `<option value="${v}">${l}</option>`).join('')}</select></div>
+        <div class="fld"><label>Ultima settimana</label><label class="cbx"><input type="checkbox" id="pg-dl"> Scarico</label></div>
+        <div class="fld pg-dl"><label for="pg-dp">Carico dello scarico (%)</label><input id="pg-dp" class="inp" inputmode="decimal"></div>
+        <div class="fld pg-dl"><label>&nbsp;</label><label class="cbx"><input type="checkbox" id="pg-ds"> Una serie in meno</label></div>
+      </div>
+      <div class="fld"><label>Anteprima con i valori di questo esercizio</label><div id="pg-prev" class="pgprev"></div></div></div>`,
+    `<div class="grow"></div><button class="btn" data-close>Annulla</button>${multi ? '<button class="btn" id="pg-blk">Applica a tutto il blocco</button>' : ''}<button class="btn pri" id="pg-ok">Applica</button>`,
+    (el, m) => {
+      const t = $('#pg-t', el);
+      const read = () => {
+        const q = { type: t.value };
+        $$('#pg-f [data-k]', el).forEach(i => { const v = num(i.value); q[i.dataset.k] = v == null ? (i.dataset.k === 'rm' ? '' : 0) : v; });
+        const rs = num($('#pg-rpe', el).value); if (rs) q.rpeStep = rs;
+        if ($('#pg-dl', el).checked) { q.deload = true; q.deloadPct = num($('#pg-dp', el).value) || 85; if ($('#pg-ds', el).checked) q.deloadSets = true; }
+        return q;
+      };
+      const preview = () => {
+        p = read();
+        const { wo, W } = weCur(), f = wo && findRowIn(wo, rid); if (!f) return;
+        const tmp = clone(f.r); tmp.prog = p; if (progUsesLoad(p)) tmp.ath = false; recompute(tmp, W);
+        const needKg = progUsesLoad(p) && p.type !== 'rm' && num(tmp.w[0].load) == null;
+        const needRm = p.type === 'rm' && !num(p.rm);
+        const isDl = i => p.deload && W >= 3 && i === W - 1;
+        $('#pg-prev', el).innerHTML = (needRm ? '<p class="hint">Scrivi il massimale per vedere i carichi.</p>' : needKg ? '<p class="hint">Questo esercizio non ha i kg nella settimana 1: scrivili nella scheda per vedere la progressione dei carichi.</p>' : '') +
+          `<div class="pgw">${tmp.w.map((w, i) => `<div><small>Sett. ${weCur().s + i + 1}${isDl(i) ? ' · scarico' : ''}</small><b>${esc(valStr(tmp, w))}</b>${p.type === 'rm' && num(p.rm) && !isDl(i) ? `<em>${fmtN((num(p.start) || 0) + (num(p.step) || 0) * i)}% del massimale</em>` : ''}</div>`).join('')}</div>`;
+        $$('.pg-dl', el).forEach(x => { x.hidden = !$('#pg-dl', el).checked; });
+      };
+      const fields = keepVals => {
+        const ty = t.value, d = { ...PDEF[ty], ...(keepVals ? p : {}) };
+        $('#pg-f', el).innerHTML = (PFIELDS[ty] || []).map(([k, l]) => k === 'round'
+          ? `<div class="fld"><label>${l}</label><select class="inp" data-k="round">${[0.5, 1, 1.25, 2.5, 5].map(v => `<option value="${v}" ${num(d.round) === v ? 'selected' : ''}>${fmtN(v)} kg</option>`).join('')}</select></div>`
+          : `<div class="fld"><label>${l}</label><input class="inp" data-k="${k}" inputmode="decimal" value="${esc(d[k] === '' || d[k] == null ? '' : fmtN(num(d[k])))}" autocomplete="off"></div>`).join('') || '<p class="hint">Stessi valori ogni settimana. Puoi comunque far salire l\'RPE o mettere lo scarico.</p>';
+        preview();
+      };
+      t.value = PDEF[p.type] ? (p.type || 'none') : 'none';
+      $('#pg-rpe', el).value = String(num(p.rpeStep) || 0);
+      $('#pg-dl', el).checked = !!p.deload; $('#pg-dp', el).value = fmtN(num(p.deloadPct) || 85); $('#pg-ds', el).checked = !!p.deloadSets;
+      fields(true);
+      t.onchange = () => fields(false);
+      el.querySelector('.pgd').addEventListener('input', preview);
+      el.querySelector('.pgd').addEventListener('change', e => { if (e.target !== t) preview(); });
+      const apply = all => {
+        p = read();
+        if (p.type === 'rm' && !num(p.rm)) { toast('Scrivi il massimale'); const i = $('[data-k="rm"]', el); if (i) i.focus(); return; }
+        const { wo, W } = weCur(), f = wo && findRowIn(wo, rid); if (!f) { m.el.remove(); return; }
+        (all ? f.b.rows : [f.r]).forEach(r => { r.prog = clone(p); if (progUsesLoad(p)) r.ath = false; recompute(r, W); });
+        m.el.remove(); changed(true); weRender(); toast(all ? 'Progressione applicata a tutto il blocco' : 'Progressione applicata');
+      };
+      $('#pg-ok', el).onclick = () => apply(false);
+      const blk = $('#pg-blk', el); if (blk) blk.onclick = () => { if (t.value === 'rm') { toast('Il massimale è diverso per ogni esercizio: applicalo uno alla volta'); return; } apply(true); };
+    }, { onClose: () => { }, noFocus: true, cls: 'pgm' });
 }
 function cellHTML(r, k, f, cls = '') {
   const w = r.w[k];
   if (f === 'load' && r.ath) return `<input class="ce ath ${cls}" disabled placeholder="atleta" aria-label="Kg: li scrive l'atleta">`;
+  if (f === 'load' && k === 0 && r.prog && r.prog.type === 'rm') return `<input class="ce base rmc ${cls}" disabled data-r="${r.id}" data-wi="0" data-f="load" value="${esc(w.load || '')}" title="Calcolato dal massimale: cambialo dalla progressione" aria-label="Kg settimana 1, calcolati dal massimale">`;
   const st = k === 0 ? 'base' : (w.m && w.m[f] ? 'man' : 'au');
   const mode = f === 'sets' ? 'numeric' : (f === 'load' || f === 'rpe') ? 'decimal' : 'text';
   return `<input class="ce ${st} ${cls}" data-r="${r.id}" data-wi="${k}" data-f="${f}" value="${esc(w[f] ?? '')}" inputmode="${mode}" autocomplete="off" spellcheck="false" aria-label="${FIELD_LABEL[f]} settimana ${k + 1}">`;
@@ -1581,10 +1826,10 @@ function weRender() {
     <select class="inp sel" data-e="day" aria-label="Giorno">${[1, 2, 3, 4, 5, 6, 7].map(d => `<option value="${d}" ${d === wo.day ? 'selected' : ''}>Giorno ${d}${taken.has(d) ? ' (scambia)' : ''}</option>`).join('')}</select>
     <span class="muted">${esc(ph.name)} · ${W === 1 ? 'sett. ' + (s + 1) : `sett. ${s + 1}–${s + W}`}</span>
     <div class="grow"></div>
-    <button class="btn sm ico" data-e="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-e="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
+    <div class="weacts"><button class="btn sm ico" data-e="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-e="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
     <button class="btn sm" data-e="rpe" aria-pressed="${WE.rpe}">RPE</button>
     <button class="btn sm" data-e="paste">Scrivi più righe</button>
-    <button class="btn sm ico" data-e="womenu" aria-label="Azioni allenamento">${ic('more')}</button></div>`;
+    <button class="btn sm ico" data-e="womenu" aria-label="Azioni allenamento">${ic('more')}</button></div></div>`;
   if (mob) {
     h += `<div class="wkc">${Array.from({ length: W }, (_, k) => `<button class="fc" data-e="wk" data-k="${k}" aria-pressed="${k === WE.i}"><b>Sett. ${s + k + 1}</b>${k === 0 ? '<small>base</small>' : '<small>auto</small>'}</button>`).join('')}</div>`;
     h += `<p class="hint">${WE.i === 0 ? 'Settimana base: le altre si calcolano da qui.' : 'Valori calcolati in grigio. Se ne cambi uno resta tuo (in bianco).'}</p>`;
@@ -1609,7 +1854,7 @@ function weRender() {
       b.rows.forEach((r, ri) => {
         h += `<tr class="er" data-row="${r.id}" style="--bc:${bColor(bi)}"><td class="c0"><span class="code" draggable="true" data-drag="${r.id}" title="Trascina per spostare">${rowCode(b, bi, ri)}</span></td>
           <td class="c1"><input class="nm" data-r="${r.id}" data-rf="name" value="${esc(r.name)}" aria-label="Esercizio" autocomplete="off"></td>
-          <td><select class="pgs" data-r="${r.id}" data-rf="prog" aria-label="Progressione">${progOptions(r)}</select></td>
+          <td><select class="pgs" data-r="${r.id}" data-rf="prog" aria-label="Progressione" title="${esc(progLabel(r.prog))}">${progOptions(r)}</select></td>
           <td>${cellHTML(r, 0, 'rest', 'rest')}</td>
           ${Array.from({ length: W }, (_, k) => fl.map((f, fi) => `<td class="${fi === 0 ? 'wsep' : ''}${k === WE.i ? ' cur' : ''}">${cellHTML(r, k, f)}</td>`).join('')).join('')}
           <td><input class="nt" data-r="${r.id}" data-rf="note" value="${esc(r.note || '')}" aria-label="Note" autocomplete="off"></td>
@@ -1620,11 +1865,11 @@ function weRender() {
     h += '</tbody></table></div>';
   }
   h += `<div class="wefoot"><button class="btn" data-e="addblk">＋ Blocco ${LETTERS[wo.blocks.length % 26]}</button><span class="muted small">Più esercizi nello stesso blocco = superset (2), triset (3), circuito (4+).</span></div>`;
-  box.innerHTML = h; undoBtns();
+  box.innerHTML = h; undoBtns(); chipIntoView(box);
 }
 function blockHead(wo, b, bi) {
-  return `<div class="bhin" style="--bc:${bColor(bi)}"><b>${blockName(b, bi)}</b>${b.rows.length > 1 ? `<label class="brest">Rec. tra i giri <input data-b="${b.id}" data-bf="rest" value="${esc(b.rest || '')}" placeholder="es. 2'" autocomplete="off"></label>` : ''}<span class="grow"></span>
-    <button class="ibtn sm" data-e="bup" data-b="${b.id}" ${bi === 0 ? 'disabled' : ''} aria-label="Sposta blocco su">↑</button><button class="ibtn sm" data-e="bdn" data-b="${b.id}" ${bi === wo.blocks.length - 1 ? 'disabled' : ''} aria-label="Sposta blocco giù">↓</button><button class="ibtn sm" data-e="bdel" data-b="${b.id}" aria-label="Elimina blocco">✕</button></div>`;
+  return `<div class="bhin" style="--bc:${bColor(bi)}"><b>${blockName(b, bi)}</b>${b.rows.length > 1 ? `<label class="brest">Rec. tra i giri <input data-b="${b.id}" data-bf="rest" value="${esc(b.rest || '')}" placeholder="es. 2'" autocomplete="off"></label>` : ''}<span class="grow"></span><span class="bact">
+    <button class="ibtn sm" data-e="bup" data-b="${b.id}" ${bi === 0 ? 'disabled' : ''} aria-label="Sposta blocco su">↑</button><button class="ibtn sm" data-e="bdn" data-b="${b.id}" ${bi === wo.blocks.length - 1 ? 'disabled' : ''} aria-label="Sposta blocco giù">↓</button><button class="ibtn sm" data-e="bdel" data-b="${b.id}" aria-label="Elimina blocco">✕</button></span></div>`;
 }
 function ghostHTML(b, bi, inTable) {
   const next = LETTERS[bi % 26] + (b.rows.length ? b.rows.length + 1 : '');
@@ -1660,8 +1905,10 @@ function weWire(el) {
     if (t.dataset.e === 'day') { moveWorkout(ph, wo.id, +t.value); redraw(); toast('Giorno cambiato in tutta la fase'); return; }
     if (t.dataset.rf === 'prog') {
       const r = findRowIn(wo, t.dataset.r).r;
-      if (t.value === '__ath') { r.ath = true; if (/^load|double/.test(r.prog.type)) r.prog = { type: 'none' }; }
-      else { r.prog = clone(presetBy(t.value).p); if (/^load|double/.test(r.prog.type)) r.ath = false; }
+      if (t.value === '__custom') { t.innerHTML = progOptions(r); progDialog(r.id); return; }
+      if (t.value === 'custom') return;
+      if (t.value === '__ath') { r.ath = true; if (progUsesLoad(r.prog)) r.prog = { type: 'none' }; }
+      else { r.prog = clone(presetBy(t.value).p); if (progUsesLoad(r.prog)) r.ath = false; }
       recompute(r, W); redraw();
     }
   };
@@ -1713,7 +1960,8 @@ function weWire(el) {
     else if (x === 'rmenu') {
       const f = findRowIn(wo, b.dataset.r), r = f.r;
       popMenu(b, [
-        { label: 'Kg vuoti: li scrive l\'atleta', check: !!r.ath, fn: () => { r.ath = !r.ath; if (r.ath && /^load|double/.test(r.prog.type)) r.prog = { type: 'none' }; recompute(r, W); redraw(); } },
+        { label: 'Progressione personalizzata…', fn: () => progDialog(r.id) },
+        { label: 'Kg vuoti: li scrive l\'atleta', check: !!r.ath, fn: () => { r.ath = !r.ath; if (r.ath && progUsesLoad(r.prog)) r.prog = { type: 'none' }; recompute(r, W); redraw(); } },
         hasManual(r) && { label: 'Ripristina i valori automatici', fn: () => { resetManual(r, W); redraw(); toast('Correzioni a mano tolte'); } },
         { sep: true },
         { label: 'Sposta su', disabled: f.bi === 0 && f.ri === 0, fn: () => { moveRow(wo, f, -1); redraw(); } },
@@ -1975,7 +2223,9 @@ function logDialog(ctx) {
   let L;
   if (ctx.log) L = clone(ctx.log);
   else if (ctx.P) {
-    const P = ctx.P, { ph, i } = weekRef(P, ctx.g), wo = ph.workouts.find(w => w.id === ctx.wid);
+    const P = ctx.P, ref = weekRef(P, ctx.g), wo = ref && ref.ph.workouts.find(w => w.id === ctx.wid);
+    if (!wo) { toast('Questo allenamento non esiste più nel programma'); return; }
+    const { ph, i } = ref;
     L = { athleteId: P.athleteId || '', date: P.start ? addDays(P.start, ctx.g * 7 + wo.day - 1) : todayISO(), title: wo.title, programId: ctx.pid, programName: P.name, phaseId: ph.id, workoutId: wo.id, week: ctx.g, day: wo.day, rpe: '', note: '', entries: entriesFromWorkout(wo, i) };
     if (L.date > todayISO()) L.date = todayISO();
   } else L = { athleteId: ctx.athleteId || '', date: ctx.date || todayISO(), title: '', rpe: '', note: '', entries: [] };
@@ -2081,7 +2331,7 @@ function historyView(el) {
     if (k === 'new') newLogChooser(b);
     else if (k === 'mode') { H.mode = b.dataset.m; saveH(); historyView(el); }
     else if (k === 'open') { const l = S.logs.find(x => x.id === b.dataset.id); if (l) logDialog({ log: l }); }
-    else if (k === 'mon') { H.month = b.dataset.v; historyView(el); }
+    else if (k === 'mon') { H.month = b.dataset.mv; historyView(el); }
     else if (k === 'day') logDialog({ athleteId: H.ath !== 'all' ? H.ath : '', date: b.dataset.d });
   };
   el.onchange = e => {
@@ -2119,7 +2369,7 @@ function histCal(list) {
   const first = new Date(y, m - 1, 1), off = (first.getDay() + 6) % 7, days = new Date(y, m, 0).getDate();
   const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`, next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
   const by = {}; list.forEach(l => { (by[l.date] = by[l.date] || []).push(l); });
-  let h = `<div class="hcal"><div class="hch"><button class="btn sm" data-h="mon" data-v="${prev}" aria-label="Mese precedente">‹</button><b>${MONTHS[m - 1]} ${y}</b><button class="btn sm" data-h="mon" data-v="${next}" aria-label="Mese successivo">›</button></div><div class="hcg">${DOW.map(d => `<div class="hdw">${d}</div>`).join('')}`;
+  let h = `<div class="hcal"><div class="hch"><button class="btn sm" data-h="mon" data-mv="${prev}" aria-label="Mese precedente">‹</button><b>${MONTHS[m - 1]} ${y}</b><button class="btn sm" data-h="mon" data-mv="${next}" aria-label="Mese successivo">›</button></div><div class="hcg">${DOW.map(d => `<div class="hdw">${d}</div>`).join('')}`;
   for (let k = 0; k < off; k++) h += '<div class="hcd out"></div>';
   const today = todayISO();
   for (let d = 1; d <= days; d++) {
@@ -2332,7 +2582,7 @@ async function boot() {
   await Store.connect();
   S.loaded.teams = S.loaded.athletes = true;
   if ((last.view === 'editor' || last.view === 'print') && (Store.cols.programs || {})[last.pid]) { S.programs = Object.entries(Store.cols.programs).map(([id, d]) => ({ id, ...clone(d) })); openEditor(last.pid); }
-  else { if (last.view === 'programs') S.view = 'programs'; shell(); }
+  else { if (['programs', 'history', 'settings'].includes(last.view)) S.view = last.view; shell(); }
   maybeSeed();
 }
 boot();

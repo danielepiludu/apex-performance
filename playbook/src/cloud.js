@@ -108,6 +108,7 @@ function settingsView(el) {
     </section>
     ${demoLeft ? `<section class="sbox"><h3>Dati di esempio</h3><p class="rs">La squadra "Baseball Demo", i 5 atleti di prova e il programma di esempio servono solo per provare l'app.</p>
       <button class="btn danger" data-s="demo">Elimina i dati di esempio</button></section>` : ''}
+    ${poweredHTML()}
   </div>`;
   el.onclick = async e => {
     const b = e.target.closest('[data-s]'); if (!b) return;

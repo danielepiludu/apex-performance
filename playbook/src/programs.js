@@ -55,6 +55,7 @@ function progStatus(p) {
   return t < p.start ? 'Da iniziare' : t > end ? 'Concluso' : 'In corso';
 }
 
+function chipIntoView(el) { const c = el && el.querySelector('.wkc [aria-pressed="true"]'); if (c && c.parentElement) c.parentElement.scrollLeft = c.offsetLeft - c.parentElement.clientWidth / 2 + c.offsetWidth / 2; }
 /* ---------- piccolo menu a comparsa ---------- */
 function popMenu(anchor, items) {
   $$('.pop').forEach(x => x.remove());
@@ -133,16 +134,16 @@ function editorView(el) {
       <select class="inp sel tsel" data-x="pteam" aria-label="Per chi è il programma" style="--tc:${own.color}">${ownerOptions(ownerKey(P))}</select>
       <div class="grow"></div>
       ${mob ? '' : `<div class="seg" role="group" aria-label="Vista">${dens.map(([k, l]) => `<button data-x="dens" data-k="${k}" aria-pressed="${S.density === k}">${l}</button>`).join('')}</div>`}
-      <button class="btn sm ico" data-x="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-x="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
+      <div class="edacts"><button class="btn sm ico" data-x="undo" data-undo="u" aria-label="Annulla" title="Annulla (Ctrl+Z)">↶</button><button class="btn sm ico" data-x="redo" data-undo="r" aria-label="Ripristina" title="Ripristina (Ctrl+Shift+Z)">↷</button>
       <button class="btn sm" data-x="addweek">＋ Settimana</button>
       <button class="btn sm" data-x="phases">Fasi</button>
       <button class="btn sm" data-x="assign">Assegna</button>
       <button class="btn sm pri" data-x="print">Stampa</button>
-      <button class="btn sm ico" data-x="pmenu" aria-label="Altre azioni">${ic('more')}</button>
+      <button class="btn sm ico" data-x="pmenu" aria-label="Altre azioni">${ic('more')}</button></div>
     </div>
     <div class="edsub"><label class="sdate">Inizio <input type="date" data-x="pstart" value="${esc(P.start || '')}" aria-label="Data di inizio"></label> · ${W} settimane · ${P.phases.length} ${P.phases.length === 1 ? 'fase' : 'fasi'} · ${P.loadMode === 'ath' ? 'kg vuoti, li scrive l\'atleta' : 'carichi in progressione automatica'}${mob ? '' : ' · trascina un allenamento per spostarlo (tieni premuto Alt per copiarlo)'}</div>
     ${mob ? calMobile(P) : calDesktop(P)}`;
-  wireEditor(el); undoBtns();
+  wireEditor(el); undoBtns(); chipIntoView(el);
 }
 function phaseHead(P, ph, pi) {
   const s = phaseStart(P, pi);
@@ -244,7 +245,7 @@ function weekMenu(b, g, el) {
     { label: 'Duplica settimana (stessi valori)', fn: () => { dupWeek(P, g); if (isMob()) S.mw = g + 1; done(`Settimana ${g + 1} duplicata`); } },
     i > 0 && { label: 'Inizia una nuova fase da qui', fn: () => { splitPhase(P, g); done('Nuova fase creata: ora puoi cambiare gli esercizi'); } },
     { sep: true },
-    { label: 'Elimina settimana', danger: true, disabled: W === 1, confirm: 'Confermi l\'eliminazione?', fn: () => { if (delWeek(P, g)) { if (S.mw >= totalWeeks(P)) S.mw = totalWeeks(P) - 1; done('Settimana eliminata'); } } }
+    { label: ph.weeks === 1 && P.phases.length > 1 ? `Elimina settimana (e la fase ${ph.name})` : 'Elimina settimana', danger: true, disabled: W === 1, confirm: 'Confermi l\'eliminazione?', fn: () => { if (delWeek(P, g)) { if (S.mw >= totalWeeks(P)) S.mw = totalWeeks(P) - 1; done('Settimana eliminata'); } } }
   ]);
 }
 function progMenu(b) {
@@ -303,8 +304,8 @@ function assignDialog() {
       const upd = () => { ok.disabled = !sel.size; ok.textContent = sel.size > 1 ? `Assegna a ${sel.size} atleti` : 'Assegna'; };
       const draw = () => {
         const box = $('#as-l', el), L = list();
-        box.innerHTML = L.map(a => { const t = teamById((a.teamIds || [])[0]); return `<button type="button" data-a="${a.id}" style="--tc:${t ? t.color : '#777'}" aria-pressed="${sel.has(a.id)}"><i></i>${esc(a.name)}</button>`; }).join('') || '<span class="rs">Nessun atleta in questo gruppo.</span>';
-        $$('button', box).forEach(b => b.onclick = () => { const id = b.dataset.a; sel.has(id) ? sel.delete(id) : sel.add(id); b.setAttribute('aria-pressed', sel.has(id)); upd(); });
+        box.innerHTML = L.map(a => { const t = teamById((a.teamIds || [])[0]); return `<button type="button" data-aid="${a.id}" style="--tc:${t ? t.color : '#777'}" aria-pressed="${sel.has(a.id)}"><i></i>${esc(a.name)}</button>`; }).join('') || '<span class="rs">Nessun atleta in questo gruppo.</span>';
+        $$('button', box).forEach(b => b.onclick = () => { const id = b.dataset.aid; sel.has(id) ? sel.delete(id) : sel.add(id); b.setAttribute('aria-pressed', sel.has(id)); upd(); });
         upd();
       };
       draw();

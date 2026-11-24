@@ -70,8 +70,14 @@ const Store = {
     this.watch(col); setTimeout(() => this.emit(col), 0);
   },
   emit(col) { const docs = Object.entries(this.cols[col] || {}).map(([id, d]) => ({ id, ...clone(d) })); (this.subs[col] || []).forEach(cb => cb(docs)); },
-  async set(col, id, data) { (this.cols[col] = this.cols[col] || {})[id] = clone(data); this.pend.push({ op: 'set', col, id, data: clone(data) }); this.persist(); this.emit(col); this.note(); this.flush(); },
-  async del(col, id) { delete (this.cols[col] || {})[id]; this.pend.push({ op: 'del', col, id }); this.persist(); this.emit(col); this.note(); this.flush(); },
+  queue(op) {
+    // tiene solo l'ultima modifica in attesa per lo stesso documento (non quella già in invio)
+    const from = this.flushing ? 1 : 0;
+    this.pend = this.pend.filter((p, k) => k < from || !(p.col === op.col && p.id === op.id));
+    this.pend.push(op);
+  },
+  async set(col, id, data) { (this.cols[col] = this.cols[col] || {})[id] = clone(data); this.queue({ op: 'set', col, id, data: clone(data) }); this.persist(); this.emit(col); this.note(); this.flush(); },
+  async del(col, id) { delete (this.cols[col] || {})[id]; this.queue({ op: 'del', col, id }); this.persist(); this.emit(col); this.note(); this.flush(); },
   async flush() {
     if (this.flushing || !this.db || this.mode === 'mem') return; this.flushing = true;
     try {
@@ -80,7 +86,17 @@ const Store = {
         await (p.op === 'set' ? d.set(p.data) : d.delete());
         this.pend.shift(); this.failed = false; this.persist(); this.note();
       }
-    } catch (e) { console.error(e); this.failed = true; setTimeout(() => this.flush(), 15000); }
+    } catch (e) {
+      console.error(e);
+      const code = (e && e.code) || '';
+      if (/invalid-argument|permission-denied|failed-precondition|out-of-range/.test(code)) {
+        // rifiuto definitivo (es. documento troppo grande): si scarta e si prosegue con le altre modifiche
+        const bad = this.pend.shift(); this.persist();
+        toast(`Una modifica non è stata salvata online (${bad && bad.col === 'athletes' ? 'scheda persona' : bad && bad.col === 'programs' ? 'programma' : 'dati'}): ${code}`);
+        this.flushing = false; return this.flush();
+      }
+      this.failed = true; setTimeout(() => this.flush(), 15000);
+    }
     this.flushing = false; this.note();
   }
 };
@@ -105,7 +121,7 @@ function modal(title, body, footer, onMount, opts = {}) {
   if (!opts.noFocus) { const f = bg.querySelector('input,textarea'); if (f) f.focus({ preventScroll: true }); }
   return m;
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape') { const o = $$('.ov').pop(); if (o) { const c = o.querySelector('[data-close]'); c ? c.click() : o.remove(); } } });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') { const pm = $$('.pop'); if (pm.length) { pm.forEach(x => x.remove()); return; } const o = $$('.ov').pop(); if (o) { const c = o.querySelector('[data-close]'); c ? c.click() : o.remove(); } } });
 /* ---------- render shell ---------- */
 function shell() {
   try { localStorage.setItem('pb_last', JSON.stringify({ view: S.view, pid: S.pid })); } catch (e) { }
@@ -121,14 +137,15 @@ function shell() {
   </aside>
   <div class="main">
     <header class="bar">
-      <button class="ibtn" data-a="menu" aria-label="Menu">${ic('menu')}</button>
+      <button class="ibtn hmenu" data-a="menu" aria-label="Menu">${ic('menu')}</button><img class="lmark mlogo" src="${LOGO}" alt="">
       <div class="teamsel" style="--tc:${cur ? cur.color : 'var(--muted)'}"><i></i>
         <select id="teamsel" aria-label="Squadra o cliente"><option value="all">Tutti</option>${S.teams.map(t => `<option value="${t.id}" ${t.id === S.team ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}<option disabled>──────────</option><option value="__new">＋ Nuova squadra o cliente…</option></select></div>
       <div class="grow"></div>
       <span class="stat" id="mode"></span>
     </header>
     <main class="content${S.view === 'editor' || S.view === 'print' ? ' wide' : ''}"><div class="page" id="page"></div></main>
-  </div>`;
+  </div>
+  <nav class="tabbar" aria-label="Sezioni">${[...NAV.map(([k, l, i]) => [k, l.split(' ')[0], i]), ['settings', 'Altro', 'gear']].map(([k, l, i]) => `<button data-v="${k}" ${S.view === k || (k === 'programs' && (S.view === 'editor' || S.view === 'print')) ? 'aria-current="page"' : ''}>${ic(i)}<span>${l}</span></button>`).join('')}</nav>`;
   showStat(); page();
 }
 function showStat() {
@@ -145,12 +162,11 @@ function page() {
   if (S.view === 'print') return printView(el);
   if (S.view === 'settings') return settingsView(el);
   if (S.view === 'history') return historyView(el);
-    const n = NAV.find(x => x[0] === S.view) || [];
-  el.innerHTML = `<div class="soonp"><h2>${esc(n[1] || '')}</h2><p>Questa sezione arriva nella fase ${n[3] || '?'} del piano.</p></div>`;
+  S.view = 'athletes'; return athletesView(el);
 }
 /* ---------- athletes ---------- */
 function athletesView(el) {
-  const list = S.athletes.filter(inTeam).filter(a => !S.q || (a.name + ' ' + (a.role || '')).toLowerCase().includes(S.q.toLowerCase())).sort(byName);
+  const list = S.athletes.filter(inTeam).filter(a => !S.q || [a.name, a.role, a.goal].filter(Boolean).join(' ').toLowerCase().includes(S.q.toLowerCase())).sort(byName);
   const cur = S.teams.find(t => t.id === S.team);
   el.innerHTML = `<div class="ph"><div><h1>${cur ? `${cur.logo ? `<img class="glogo" src="${cur.logo}" alt="">` : `<span class="gdot" style="background:${cur.color}"></span>`}${esc(cur.name)}` : 'Tutti gli atleti'}</h1><div class="sub">${list.length} ${list.length === 1 ? 'atleta' : 'atleti'}${cur ? '' : ' · ' + S.teams.length + ' tra squadre e clienti'}</div></div>${cur ? '<button class="btn sm" data-a="editgrp" aria-label="Modifica squadra o cliente">Modifica gruppo</button>' : ''}<div class="grow"></div>
     <input class="inp search" id="q" type="search" placeholder="Cerca per nome o ruolo" value="${esc(S.q)}" aria-label="Cerca">
@@ -240,7 +256,16 @@ function athleteForm(id) {
         await Store.set('athletes', id || uid(), { ...keep, ...(id ? { createdAt: a.createdAt } : { createdAt: Date.now() }), ...d }); m.close(); toast('Salvato');
       };
       const del = $('#f-del', el);
-      if (del) del.onclick = () => { del.textContent = 'Confermi l\'eliminazione?'; del.onclick = async () => { await Store.del('athletes', id); m.close(); toast('Eliminato'); }; };
+      if (del) del.onclick = () => {
+        const progs = S.programs.filter(p => p.athleteId === id), logs = S.logs.filter(l => l.athleteId === id);
+        const extra = [progs.length ? `${progs.length} ${progs.length === 1 ? 'programma' : 'programmi'}` : '', logs.length ? `${logs.length} ${logs.length === 1 ? 'allenamento registrato' : 'allenamenti registrati'}` : ''].filter(Boolean).join(' e ');
+        del.textContent = extra ? `Elimina anche ${extra}. Confermi?` : 'Confermi l\'eliminazione?';
+        del.onclick = async () => {
+          for (const p of progs) await Store.del('programs', p.id);
+          for (const l of logs) await Store.del('logs', l.id);
+          await Store.del('athletes', id); m.close(); toast('Eliminato');
+        };
+      };
     });
 }
 /* ---------- groups (squadre e clienti) ---------- */

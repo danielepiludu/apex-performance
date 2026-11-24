@@ -143,7 +143,7 @@ async function boot() {
   await Store.connect();
   S.loaded.teams = S.loaded.athletes = true;
   if ((last.view === 'editor' || last.view === 'print') && (Store.cols.programs || {})[last.pid]) { S.programs = Object.entries(Store.cols.programs).map(([id, d]) => ({ id, ...clone(d) })); openEditor(last.pid); }
-  else { if (last.view === 'programs') S.view = 'programs'; shell(); }
+  else { if (['programs', 'history', 'settings'].includes(last.view)) S.view = last.view; shell(); }
   maybeSeed();
 }
 boot();

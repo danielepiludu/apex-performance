@@ -27,7 +27,9 @@ function logDialog(ctx) {
   let L;
   if (ctx.log) L = clone(ctx.log);
   else if (ctx.P) {
-    const P = ctx.P, { ph, i } = weekRef(P, ctx.g), wo = ph.workouts.find(w => w.id === ctx.wid);
+    const P = ctx.P, ref = weekRef(P, ctx.g), wo = ref && ref.ph.workouts.find(w => w.id === ctx.wid);
+    if (!wo) { toast('Questo allenamento non esiste più nel programma'); return; }
+    const { ph, i } = ref;
     L = { athleteId: P.athleteId || '', date: P.start ? addDays(P.start, ctx.g * 7 + wo.day - 1) : todayISO(), title: wo.title, programId: ctx.pid, programName: P.name, phaseId: ph.id, workoutId: wo.id, week: ctx.g, day: wo.day, rpe: '', note: '', entries: entriesFromWorkout(wo, i) };
     if (L.date > todayISO()) L.date = todayISO();
   } else L = { athleteId: ctx.athleteId || '', date: ctx.date || todayISO(), title: '', rpe: '', note: '', entries: [] };
@@ -133,7 +135,7 @@ function historyView(el) {
     if (k === 'new') newLogChooser(b);
     else if (k === 'mode') { H.mode = b.dataset.m; saveH(); historyView(el); }
     else if (k === 'open') { const l = S.logs.find(x => x.id === b.dataset.id); if (l) logDialog({ log: l }); }
-    else if (k === 'mon') { H.month = b.dataset.v; historyView(el); }
+    else if (k === 'mon') { H.month = b.dataset.mv; historyView(el); }
     else if (k === 'day') logDialog({ athleteId: H.ath !== 'all' ? H.ath : '', date: b.dataset.d });
   };
   el.onchange = e => {
@@ -171,7 +173,7 @@ function histCal(list) {
   const first = new Date(y, m - 1, 1), off = (first.getDay() + 6) % 7, days = new Date(y, m, 0).getDate();
   const prev = m === 1 ? `${y - 1}-12` : `${y}-${String(m - 1).padStart(2, '0')}`, next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
   const by = {}; list.forEach(l => { (by[l.date] = by[l.date] || []).push(l); });
-  let h = `<div class="hcal"><div class="hch"><button class="btn sm" data-h="mon" data-v="${prev}" aria-label="Mese precedente">‹</button><b>${MONTHS[m - 1]} ${y}</b><button class="btn sm" data-h="mon" data-v="${next}" aria-label="Mese successivo">›</button></div><div class="hcg">${DOW.map(d => `<div class="hdw">${d}</div>`).join('')}`;
+  let h = `<div class="hcal"><div class="hch"><button class="btn sm" data-h="mon" data-mv="${prev}" aria-label="Mese precedente">‹</button><b>${MONTHS[m - 1]} ${y}</b><button class="btn sm" data-h="mon" data-mv="${next}" aria-label="Mese successivo">›</button></div><div class="hcg">${DOW.map(d => `<div class="hdw">${d}</div>`).join('')}`;
   for (let k = 0; k < off; k++) h += '<div class="hcd out"></div>';
   const today = todayISO();
   for (let d = 1; d <= days; d++) {

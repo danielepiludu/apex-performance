@@ -12,12 +12,13 @@ function parseLine(src) {
   if (take(/\b(?:kg|carico|carichi)\s*(?:atleta|liberi?|vuoti?)\b/i)) out.ath = true;
   if ((m = take(/\bonda\b/i))) out.prog = 'wave';
   else if ((m = take(/\bdoppia\b/i))) out.prog = 'dbl';
-  else if ((m = take(/\+\s*(\d+(?:[.,]\d+)?)\s*(kg|chili|%|serie|sets?|s\b|rip\w*|r\b)(?:\s*\/\s*(?:sett\w*|w\w*))?/i))) {
+  else if ((m = take(/\+\s*(\d+(?:[.,]\d+)?)\s*(kg|chili|%|secondi|sec|"|serie|sets?|s\b|rip\w*|r\b)(?:\s*\/\s*(?:sett\w*|w\w*))?/i))) {
     const v = parseFloat(dec(m[1])), u = m[2].toLowerCase();
     if (u === 'kg' || u === 'chili') out.prog = v === 5 ? 'kg5' : v === 2.5 ? 'kg25' : { type: 'load_kg', step: v };
     else if (u === '%') out.prog = v === 2.5 ? 'pct' : { type: 'load_pct', step: v, round: 2.5 };
-    else if (/^(serie|set|s)/.test(u)) out.prog = 'setsw';
-    else out.prog = 'reps';
+    else if (u === 'secondi' || u === 'sec' || u === '"') out.prog = v === 5 ? 'secs' : { type: 'reps', inc: v, every: 1, max: 0 };
+    else if (/^(serie|set|s)/.test(u)) out.prog = v === 1 ? 'setsw' : { type: 'sets', inc: v, every: 1, max: 0 };
+    else out.prog = v === 1 ? 'reps' : { type: 'reps', inc: v, every: 1, max: 0 };
   }
   if ((m = take(/\b(?:rec|rest|r)\s*\.?\s*(\d+(?:'\d*)?)\s*(s|sec|min|m|"|')?/i))) {
     out.rest = m[1].includes("'") ? m[1] : (m[2] && /min|m/i.test(m[2]) ? m[1] + "'" : m[1] + '"');
