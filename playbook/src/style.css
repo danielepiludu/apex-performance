@@ -265,7 +265,7 @@ table.sh{width:100%;border-collapse:collapse}
   :root{color-scheme:light!important;background:#fff!important}
   html,body{background:#fff!important;height:auto!important}
   #app{display:block!important;height:auto!important}
-  .side,.bar,.prbar,.propts,.scrim,.toast,.ov,.pop{display:none!important}
+  .side,.bar,.tabbar,.prbar,.propts,.scrim,.toast,.ov,.pop,.pwr{display:none!important}
   .main,.content,.page,.prwrap,.prprev{display:block!important;overflow:visible!important;padding:0!important;margin:0!important;max-width:none!important;border:0!important;background:none!important;border-radius:0!important}
   .pages{zoom:1!important}
   .sheet{box-shadow:none;margin:0;width:auto;min-height:0;padding:0;break-after:page}
